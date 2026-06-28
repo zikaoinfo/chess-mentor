@@ -90,7 +90,11 @@ export class Chessboard {
   });
 
   protected glyph(piece: Piece | null): string {
-    return piece ? GLYPHS[piece.type] : '';
+    // Append U+FE0E (text variation selector): without it, iOS/some browsers
+    // render ♟ (U+265F) as a colour emoji — black-coloured and oversized,
+    // ignoring `fill` and `font-size`. FE0E forces monochrome text rendering so
+    // the gradient fill and size apply to every piece consistently.
+    return piece ? GLYPHS[piece.type] + '\uFE0E' : '';
   }
 
   protected isHintFrom(name: string): boolean {

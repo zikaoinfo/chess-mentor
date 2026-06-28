@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { SoundService } from './core/services/sound.service';
 
 @Component({
   selector: 'app-root',
@@ -9,5 +10,12 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   styleUrl: './app.scss',
 })
 export class App {
+  private readonly sound = inject(SoundService);
+
   protected readonly title = 'ChessMentor';
+  protected readonly muted = this.sound.muted;
+
+  protected toggleSound(): void {
+    this.sound.toggleMute();
+  }
 }
