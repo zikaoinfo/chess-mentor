@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: min(100%, 92vmin, 82vh);
+  max-width: min(100%, 92vmin, 82vh, 1200px);
   margin-inline: auto;
   aspect-ratio: 1 / 1;
   border: 1px dashed var(--cm-border);
@@ -82,11 +82,27 @@
   color: var(--cm-error);
 }
 
-// Stack board over the side panel on tablets and phones.
+// Tablet landscape / small laptop: keep the board beside the panel but slim
+// the sidebar so the board keeps as much room as possible.
+@media (min-width: 901px) and (max-width: 1100px) {
+  .trainer__body {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: var(--cm-space-4);
+  }
+}
+
+// Tablet portrait & phones: stack the board over the side panel.
 @media (max-width: 900px) {
   .trainer__body {
     grid-template-columns: 1fr;
     gap: var(--cm-space-4);
+  }
+
+  // The stacked side panel reads better full-width and centered under the board.
+  .trainer__side {
+    width: 100%;
+    max-width: min(100%, 92vmin, 82vh, 1200px);
+    margin-inline: auto;
   }
 }
 

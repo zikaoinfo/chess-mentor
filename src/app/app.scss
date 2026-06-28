@@ -46,11 +46,26 @@
 }
 
 .app-main {
-  // Wide enough that the board can grow on desktop (the board is capped by
-  // viewport height, not this column — see chessboard.scss :host).
-  max-width: 1180px;
+  // The column must be wide enough that the *board* (capped by viewport
+  // height — see chessboard.scss :host), not this container, is the limiter.
+  // Scale the cap up on larger displays so the board keeps growing.
+  max-width: 1280px;
   margin: 0 auto;
   padding: var(--cm-space-8) var(--cm-space-6);
+}
+
+// 24" 1080p and similar — give the board room to reach ~82vh.
+@media (min-width: 1600px) {
+  .app-main {
+    max-width: 1560px;
+  }
+}
+
+// QHD/ultrawide and 45" curved (e.g. 3440×1440, 5120×1440).
+@media (min-width: 2560px) {
+  .app-main {
+    max-width: 2040px;
+  }
 }
 
 // Give the board more room on phones: trim chrome and tighten padding.
