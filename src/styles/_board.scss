@@ -1,16 +1,27 @@
-// Board-specific shared styles.
-// The board itself is rendered as inline SVG by the chessboard component;
-// these helpers cover the surrounding layout and coordinate labels.
+// Board frame & surface — shared layout.
+// The board is rendered as inline SVG by the chessboard component; this gives
+// it a premium physical-board frame: a thin bezel, refined rounded corners and
+// soft layered depth instead of a harsh border.
 
 .cm-board-wrap {
-  // Fills the chessboard host, which owns the responsive sizing (see
-  // chessboard.scss :host). `vmin`-based capping keeps the board square and
-  // on-screen in both portrait and landscape.
+  // Responsive sizing — large on desktop, fills a phone, fits ultrawide.
   width: 100%;
+  max-width: min(100%, 92vmin, 82vh, 1200px);
+  margin-inline: auto;
   aspect-ratio: 1 / 1;
-  border-radius: var(--cm-radius);
-  overflow: hidden;
-  box-shadow: var(--cm-shadow);
+
+  // Thin elegant bezel around the playing surface.
+  padding: 1.6%;
+  background: linear-gradient(155deg, var(--cm-board-frame-1), var(--cm-board-frame-2));
+  border-radius: var(--cm-board-radius);
+
+  // Soft depth: inset top highlight + two layered ambient shadows.
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.22),
+    0 18px 42px -14px rgba(0, 0, 0, 0.6),
+    0 4px 14px -8px rgba(0, 0, 0, 0.45);
+
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
@@ -20,11 +31,14 @@
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.cm-coord {
-  font-size: 3px;
-  font-weight: 600;
-  fill: var(--cm-text-muted);
-  pointer-events: none;
+  // Clip the square grid to refined rounded corners.
+  border-radius: var(--cm-board-inner-radius);
+  overflow: hidden;
+  // Crisp seat for the surface inside the bezel.
+  box-shadow:
+    0 0 0 0.5px rgba(0, 0, 0, 0.3),
+    inset 0 0 18px rgba(0, 0, 0, 0.14);
+  // Sharper rendering of vector pieces on Retina.
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
 }
