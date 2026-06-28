@@ -46,7 +46,9 @@
 }
 
 .app-main {
-  max-width: 960px;
+  // Wide enough that the board can grow on desktop (the board is capped by
+  // viewport height, not this column — see chessboard.scss :host).
+  max-width: 1180px;
   margin: 0 auto;
   padding: var(--cm-space-8) var(--cm-space-6);
 }
