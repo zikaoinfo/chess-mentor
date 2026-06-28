@@ -1,52 +1,165 @@
 :host {
   // The host is a flex item; without an explicit width it shrinks to the
   // SVG's intrinsic 300px. Fill the available column, capped by the viewport
-  // so the board grows from phone to large/ultrawide desktop yet always fits:
-  //   - 92vmin  → fills the width on a phone/tablet in portrait
-  //   - 82vh    → grows with the window height on desktop (incl. tall 1440
-  //               panels such as 45" curved) without overflowing vertically
-  //   - 1200px  → ceiling so it stays sensible on 4K/8K screens
+  // so the board grows from phone to large/ultrawide desktop yet always fits.
   display: block;
   width: 100%;
   max-width: min(100%, 92vmin, 82vh, 1200px);
   margin-inline: auto;
 }
 
+// ─── Squares ──────────────────────────────────────────────────────────────
 .square--interactive {
   cursor: pointer;
   outline: none;
 }
 
-.square--interactive:focus-visible rect:first-of-type {
-  stroke: var(--cm-accent);
-  stroke-width: 0.8;
+.square__bg {
+  // Hairline seam between squares for a crisp, precise grid.
+  stroke: rgba(0, 0, 0, 0.04);
+  stroke-width: 0.15;
 }
 
+// Keyboard focus — clearly visible, accessible.
+.square--interactive:focus-visible .square__bg {
+  stroke: var(--cm-accent);
+  stroke-width: 0.9;
+}
+
+// ─── Pieces ─────────────────────────────────────────────────────────────
 .piece {
-  font-size: 9px;
+  font-size: 9.5px;
   pointer-events: none;
+  // Soft, subtle drop shadow for depth & separation from the square.
+  filter: url(#cm-piece-shadow);
+  // GPU-friendly hover/selection micro-interaction.
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: transform 170ms var(--cm-ease);
 }
 
 .piece--white {
-  fill: #fafafa;
-  stroke: #2a2a2a;
-  stroke-width: 0.25;
+  fill: url(#cm-grad-white);
+  stroke: var(--cm-piece-white-stroke);
+  stroke-width: 0.18;
 }
 
 .piece--black {
-  fill: #2a2a2a;
-  stroke: #efefef;
-  stroke-width: 0.2;
+  fill: url(#cm-grad-black);
+  // Faint lighter rim so the piece keeps visible detail on dark squares.
+  stroke: var(--cm-piece-black-stroke);
+  stroke-width: 0.16;
 }
 
-.hint {
-  fill: var(--cm-square-legal);
+// Subtle tactile elevation on hover (pointer devices only).
+@media (hover: hover) {
+  .square--interactive:hover .piece {
+    transform: translateY(-0.25px) scale(1.05);
+  }
+}
+
+.square--selected .piece {
+  transform: translateY(-0.3px) scale(1.06);
+}
+
+// ─── Coordinates ────────────────────────────────────────────────────────
+.coord {
+  font-family: var(--cm-font);
+  font-size: 2.5px;
+  font-weight: 600;
+  fill: var(--cm-coord-on-light);
   pointer-events: none;
+}
+
+.coord--file {
+  text-anchor: end;
+}
+
+.coord--on-dark {
+  fill: var(--cm-coord-on-dark);
+}
+
+// ─── Last move ──────────────────────────────────────────────────────────
+.lastmove {
+  pointer-events: none;
+  animation: cm-fade var(--cm-anim) var(--cm-ease) both;
+}
+
+// ─── Selection ──────────────────────────────────────────────────────────
+.selection-fill {
+  fill: var(--cm-select-fill);
+  pointer-events: none;
+  animation: cm-fade var(--cm-anim) var(--cm-ease) both;
+}
+
+.selection-ring {
+  fill: none;
+  stroke: var(--cm-select-ring);
+  stroke-width: 0.7;
+  pointer-events: none;
+  filter: url(#cm-select-glow);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cm-pop var(--cm-anim) var(--cm-ease) both;
+}
+
+// ─── Legal move indicators ──────────────────────────────────────────────
+.hint {
+  fill: var(--cm-legal-on-light);
+  pointer-events: none;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cm-pop 160ms var(--cm-ease) both;
+}
+
+.hint--on-dark {
+  fill: var(--cm-legal-on-dark);
 }
 
 .hint--capture {
   fill: none;
-  stroke: var(--cm-square-legal);
-  stroke-width: 1.4;
-  pointer-events: none;
+  stroke: var(--cm-legal-on-light);
+  stroke-width: 1;
+}
+
+.hint--capture.hint--on-dark {
+  stroke: var(--cm-legal-on-dark);
+}
+
+// ─── Animations ─────────────────────────────────────────────────────────
+@keyframes cm-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cm-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+// ─── Reduced motion ─────────────────────────────────────────────────────
+@media (prefers-reduced-motion: reduce) {
+  .piece,
+  .hint,
+  .selection-ring,
+  .selection-fill,
+  .lastmove {
+    animation: none;
+    transition: none;
+  }
+
+  .square--interactive:hover .piece,
+  .square--selected .piece {
+    transform: none;
+  }
 }

@@ -5,10 +5,42 @@
     role="grid"
     [attr.aria-label]="'Échiquier, position ' + fen()"
   >
+    <!--
+      Gradient stops & filter flood colours are SVG presentation attributes,
+      which don't resolve CSS var(); the literals here mirror the board tokens
+      in styles/_tokens.scss (warm-white / charcoal / honey / accent).
+    -->
+    <defs>
+      <!-- Warm ivory whites with subtle top→bottom internal shading. -->
+      <linearGradient id="cm-grad-white" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#fcf8f0" />
+        <stop offset="1" stop-color="#e8dcc6" />
+      </linearGradient>
+      <!-- Deep charcoal blacks — shaded, never a flat silhouette. -->
+      <linearGradient id="cm-grad-black" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#44444c" />
+        <stop offset="1" stop-color="#25252b" />
+      </linearGradient>
+      <!-- Soft honey last-move overlay. -->
+      <linearGradient id="cm-grad-lastmove" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="rgba(203, 167, 95, 0.46)" />
+        <stop offset="1" stop-color="rgba(203, 167, 95, 0.26)" />
+      </linearGradient>
+      <!-- Extremely subtle drop shadow for piece separation/depth. -->
+      <filter id="cm-piece-shadow" x="-30%" y="-30%" width="160%" height="160%">
+        <feDropShadow dx="0" dy="0.45" stdDeviation="0.4" flood-color="#000000" flood-opacity="0.38" />
+      </filter>
+      <!-- Soft glow for the selection ring. -->
+      <filter id="cm-select-glow" x="-60%" y="-60%" width="220%" height="220%">
+        <feDropShadow dx="0" dy="0" stdDeviation="0.85" flood-color="#6f93f0" flood-opacity="0.9" />
+      </filter>
+    </defs>
+
     @for (sq of board(); track sq.name; let i = $index) {
       <g
         class="square"
         [class.square--interactive]="interactive()"
+        [class.square--selected]="isSelected(sq.name)"
         (click)="onSquare(sq)"
         [attr.role]="'gridcell'"
         [attr.aria-label]="sq.name"
@@ -17,6 +49,7 @@
         (keydown.space)="onSquare(sq)"
       >
         <rect
+          class="square__bg"
           [attr.x]="(i % 8) * 12.5"
           [attr.y]="(i - (i % 8)) / 8 * 12.5"
           width="12.5"
@@ -26,22 +59,41 @@
 
         @if (isLast(sq.name)) {
           <rect
+            class="lastmove"
             [attr.x]="(i % 8) * 12.5"
             [attr.y]="(i - (i % 8)) / 8 * 12.5"
             width="12.5"
             height="12.5"
-            fill="var(--cm-square-last)"
+            fill="url(#cm-grad-lastmove)"
           />
         }
 
         @if (isSelected(sq.name)) {
           <rect
+            class="selection-fill"
             [attr.x]="(i % 8) * 12.5"
             [attr.y]="(i - (i % 8)) / 8 * 12.5"
             width="12.5"
             height="12.5"
-            fill="var(--cm-square-selected)"
           />
+        }
+
+        <!-- Coordinates: rank on the left file, file letter on the bottom rank. -->
+        @if (i % 8 === 0) {
+          <text
+            class="coord"
+            [class.coord--on-dark]="!sq.light"
+            [attr.x]="(i % 8) * 12.5 + 1"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 3.1"
+          >{{ sq.name.charAt(1) }}</text>
+        }
+        @if (i >= 56) {
+          <text
+            class="coord coord--file"
+            [class.coord--on-dark]="!sq.light"
+            [attr.x]="(i % 8) * 12.5 + 11.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 11.6"
+          >{{ sq.name.charAt(0) }}</text>
         }
 
         @if (sq.piece) {
@@ -50,7 +102,7 @@
             [class.piece--white]="sq.piece.color === 'w'"
             [class.piece--black]="sq.piece.color === 'b'"
             [attr.x]="(i % 8) * 12.5 + 6.25"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 6.4"
             text-anchor="middle"
             dominant-baseline="central"
           >{{ glyph(sq.piece) }}</text>
@@ -60,18 +112,31 @@
           @if (sq.piece) {
             <circle
               class="hint hint--capture"
+              [class.hint--on-dark]="!sq.light"
               [attr.cx]="(i % 8) * 12.5 + 6.25"
               [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
-              r="5.6"
+              r="5.55"
             />
           } @else {
             <circle
               class="hint"
+              [class.hint--on-dark]="!sq.light"
               [attr.cx]="(i % 8) * 12.5 + 6.25"
               [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
-              r="1.9"
+              r="2.05"
             />
           }
+        }
+
+        @if (isSelected(sq.name)) {
+          <rect
+            class="selection-ring"
+            [attr.x]="(i % 8) * 12.5 + 0.6"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 0.6"
+            width="11.3"
+            height="11.3"
+            rx="1.6"
+          />
         }
       </g>
     }
