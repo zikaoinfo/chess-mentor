@@ -9,8 +9,12 @@
 
 # Node modules and dependency files
 /node_modules/
-/package-lock.json
 /yarn.lock
+# NB: package-lock.json IS committed — the CI workflow relies on `npm ci`.
+
+# Local toolchain (downloaded Node runtime, scaffold scratch)
+/.node/
+/scaffold/
 
 # Environment files
 /.env

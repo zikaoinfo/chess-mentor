@@ -1,0 +1,10 @@
+<div class="feedback" [attr.data-tone]="tone()" role="status" aria-live="polite">
+  <span class="feedback__icon" aria-hidden="true">{{ icon() }}</span>
+  <p class="feedback__msg">{{ message() }}</p>
+
+  @if (status() === 'solved') {
+    <button type="button" class="cm-btn cm-btn--primary" (click)="next.emit()">
+      Puzzle suivant →
+    </button>
+  }
+</div>

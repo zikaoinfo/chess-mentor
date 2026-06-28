@@ -1,0 +1,58 @@
+@use "tokens";
+@use "board";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  background: var(--cm-bg);
+  color: var(--cm-text);
+  font-family: var(--cm-font);
+  line-height: 1.5;
+}
+
+a {
+  color: var(--cm-accent);
+}
+
+button {
+  font-family: inherit;
+}
+
+.cm-btn {
+  appearance: none;
+  border: 1px solid var(--cm-border);
+  background: var(--cm-surface-2);
+  color: var(--cm-text);
+  padding: var(--cm-space-2) var(--cm-space-4);
+  border-radius: var(--cm-radius-sm);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    background: var(--cm-border);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.cm-btn--primary {
+  background: var(--cm-accent-strong);
+  border-color: var(--cm-accent-strong);
+  color: #fff;
+
+  &:hover {
+    background: var(--cm-accent);
+  }
+}

@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+.square--interactive {
+  cursor: pointer;
+  outline: none;
+}
+
+.square--interactive:focus-visible rect:first-of-type {
+  stroke: var(--cm-accent);
+  stroke-width: 0.8;
+}
+
+.piece {
+  font-size: 9px;
+  pointer-events: none;
+}
+
+.piece--white {
+  fill: #fafafa;
+  stroke: #2a2a2a;
+  stroke-width: 0.25;
+}
+
+.piece--black {
+  fill: #2a2a2a;
+  stroke: #efefef;
+  stroke-width: 0.2;
+}
+
+.hint {
+  fill: var(--cm-square-legal);
+  pointer-events: none;
+}
+
+.hint--capture {
+  fill: none;
+  stroke: var(--cm-square-legal);
+  stroke-width: 1.4;
+  pointer-events: none;
+}

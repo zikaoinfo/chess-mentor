@@ -1,0 +1,79 @@
+<div class="cm-board-wrap">
+  <svg
+    class="cm-board-svg"
+    viewBox="0 0 100 100"
+    role="grid"
+    [attr.aria-label]="'Échiquier, position ' + fen()"
+  >
+    @for (sq of board(); track sq.name; let i = $index) {
+      <g
+        class="square"
+        [class.square--interactive]="interactive()"
+        (click)="onSquare(sq)"
+        [attr.role]="'gridcell'"
+        [attr.aria-label]="sq.name"
+        [attr.tabindex]="interactive() ? 0 : -1"
+        (keydown.enter)="onSquare(sq)"
+        (keydown.space)="onSquare(sq)"
+      >
+        <rect
+          [attr.x]="(i % 8) * 12.5"
+          [attr.y]="(i - (i % 8)) / 8 * 12.5"
+          width="12.5"
+          height="12.5"
+          [attr.fill]="sq.light ? 'var(--cm-square-light)' : 'var(--cm-square-dark)'"
+        />
+
+        @if (isLast(sq.name)) {
+          <rect
+            [attr.x]="(i % 8) * 12.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            width="12.5"
+            height="12.5"
+            fill="var(--cm-square-last)"
+          />
+        }
+
+        @if (isSelected(sq.name)) {
+          <rect
+            [attr.x]="(i % 8) * 12.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            width="12.5"
+            height="12.5"
+            fill="var(--cm-square-selected)"
+          />
+        }
+
+        @if (sq.piece) {
+          <text
+            class="piece"
+            [class.piece--white]="sq.piece.color === 'w'"
+            [class.piece--black]="sq.piece.color === 'b'"
+            [attr.x]="(i % 8) * 12.5 + 6.25"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+            text-anchor="middle"
+            dominant-baseline="central"
+          >{{ glyph(sq.piece) }}</text>
+        }
+
+        @if (isLegal(sq.name)) {
+          @if (sq.piece) {
+            <circle
+              class="hint hint--capture"
+              [attr.cx]="(i % 8) * 12.5 + 6.25"
+              [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+              r="5.6"
+            />
+          } @else {
+            <circle
+              class="hint"
+              [attr.cx]="(i % 8) * 12.5 + 6.25"
+              [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+              r="1.9"
+            />
+          }
+        }
+      </g>
+    }
+  </svg>
+</div>

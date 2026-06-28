@@ -1,0 +1,14 @@
+<article class="card">
+  <header class="card__head">
+    <h2 class="card__title">{{ toMove() }}</h2>
+    <span class="card__rating" title="Difficulté Lichess">⚑ {{ puzzle().rating }}</span>
+  </header>
+
+  <ul class="themes">
+    @for (theme of shownThemes(); track theme) {
+      <li class="chip">{{ theme | themeLabel }}</li>
+    }
+  </ul>
+
+  <p class="card__id">Puzzle #{{ puzzle().id }}</p>
+</article>
