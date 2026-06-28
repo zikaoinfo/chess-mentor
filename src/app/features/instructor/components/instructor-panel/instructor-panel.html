@@ -1,0 +1,41 @@
+<section class="panel">
+  <div class="field">
+    <span class="field__label">Difficulté</span>
+    <div class="difficulty" role="group" aria-label="Niveau de difficulté">
+      @for (opt of options; track opt.value) {
+        <button
+          type="button"
+          class="cm-btn diff-btn"
+          [class.diff-btn--active]="opt.value === difficulty()"
+          [attr.aria-pressed]="opt.value === difficulty()"
+          (click)="difficultyChange.emit(opt.value)"
+        >
+          {{ opt.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <div class="turn" [class.turn--thinking]="thinking()">
+    @if (thinking()) {
+      <span class="spinner" aria-hidden="true"></span>
+    }
+    <span class="turn__label">{{ turnLabel() }}</span>
+  </div>
+
+  @if (coaching(); as c) {
+    <div class="coach" [attr.data-type]="c.type" role="status" aria-live="polite">
+      <span class="coach__icon" aria-hidden="true">{{ coachIcon(c.type) }}</span>
+      <p class="coach__text">{{ c.text }}</p>
+    </div>
+  }
+
+  <div class="actions">
+    <button type="button" class="cm-btn" [disabled]="!canHint()" (click)="hint.emit()">
+      Indice
+    </button>
+    <button type="button" class="cm-btn cm-btn--primary" (click)="newGame.emit()">
+      Nouvelle partie
+    </button>
+  </div>
+</section>

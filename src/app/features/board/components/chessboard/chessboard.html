@@ -34,17 +34,29 @@
       <filter id="cm-select-glow" x="-60%" y="-60%" width="220%" height="220%">
         <feDropShadow dx="0" dy="0" stdDeviation="0.85" flood-color="#6f93f0" flood-opacity="0.9" />
       </filter>
+      <!-- Arrowhead for the coaching hint arrow. -->
+      <marker
+        id="cm-hint-arrowhead"
+        viewBox="0 0 10 10"
+        refX="7"
+        refY="5"
+        markerWidth="3.4"
+        markerHeight="3.4"
+        orient="auto-start-reverse"
+      >
+        <path d="M0,1 L9,5 L0,9 z" fill="#5b7ce0" />
+      </marker>
     </defs>
 
     @for (sq of board(); track sq.name; let i = $index) {
       <g
         class="square"
-        [class.square--interactive]="interactive()"
+        [class.square--interactive]="active()"
         [class.square--selected]="isSelected(sq.name)"
         (click)="onSquare(sq)"
         [attr.role]="'gridcell'"
         [attr.aria-label]="sq.name"
-        [attr.tabindex]="interactive() ? 0 : -1"
+        [attr.tabindex]="active() ? 0 : -1"
         (keydown.enter)="onSquare(sq)"
         (keydown.space)="onSquare(sq)"
       >
@@ -71,6 +83,25 @@
         @if (isSelected(sq.name)) {
           <rect
             class="selection-fill"
+            [attr.x]="(i % 8) * 12.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            width="12.5"
+            height="12.5"
+          />
+        }
+
+        @if (isHintFrom(sq.name)) {
+          <rect
+            class="hint-square hint-square--from"
+            [attr.x]="(i % 8) * 12.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            width="12.5"
+            height="12.5"
+          />
+        }
+        @if (isHintTo(sq.name)) {
+          <rect
+            class="hint-square hint-square--to"
             [attr.x]="(i % 8) * 12.5"
             [attr.y]="(i - (i % 8)) / 8 * 12.5"
             width="12.5"
@@ -139,6 +170,17 @@
           />
         }
       </g>
+    }
+
+    @if (hintArrow(); as arrow) {
+      <line
+        class="hint-arrow"
+        [attr.x1]="arrow.x1"
+        [attr.y1]="arrow.y1"
+        [attr.x2]="arrow.x2"
+        [attr.y2]="arrow.y2"
+        marker-end="url(#cm-hint-arrowhead)"
+      />
     }
   </svg>
 </div>

@@ -11,6 +11,14 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'instructor',
+    title: 'ChessMentor — Jouer contre le bot',
+    loadComponent: () =>
+      import('./features/instructor/pages/instructor-game/instructor-game').then(
+        (m) => m.InstructorGame,
+      ),
+  },
+  {
     path: 'stats',
     title: 'ChessMentor — Progression',
     loadComponent: () =>

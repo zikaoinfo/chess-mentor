@@ -118,6 +118,41 @@
   stroke: var(--cm-legal-on-dark);
 }
 
+// ─── Coaching hint ──────────────────────────────────────────────────────
+.hint-square {
+  pointer-events: none;
+  animation: cm-fade var(--cm-anim) var(--cm-ease) both;
+}
+
+.hint-square--from {
+  fill: var(--cm-hint-from);
+}
+
+.hint-square--to {
+  fill: var(--cm-hint-to);
+}
+
+.hint-arrow {
+  fill: none;
+  stroke: var(--cm-hint);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  opacity: 0.85;
+  pointer-events: none;
+  animation: cm-hint-draw 600ms var(--cm-ease) both;
+}
+
+@keyframes cm-hint-draw {
+  from {
+    opacity: 0;
+    stroke-dasharray: 0 120;
+  }
+  to {
+    opacity: 0.85;
+    stroke-dasharray: 120 0;
+  }
+}
+
 // ─── Animations (opacity only — GPU friendly, cross-browser safe) ────────
 @keyframes cm-fade {
   from {
@@ -132,6 +167,8 @@
 @media (prefers-reduced-motion: reduce) {
   .square__bg,
   .hint,
+  .hint-square,
+  .hint-arrow,
   .selection-ring,
   .selection-fill,
   .lastmove {

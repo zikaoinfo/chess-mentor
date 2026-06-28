@@ -1,0 +1,56 @@
+:host {
+  position: absolute;
+  inset: auto 0 0.6rem 0;
+  display: flex;
+  justify-content: center;
+  pointer-events: none;
+  padding: 0 var(--cm-space-3);
+}
+
+.overlay {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--cm-space-2);
+  max-width: 90%;
+  padding: var(--cm-space-2) var(--cm-space-3);
+  background: color-mix(in srgb, var(--cm-surface) 92%, transparent);
+  border: 1px solid var(--cm-hint);
+  border-radius: var(--cm-radius);
+  box-shadow: var(--cm-shadow);
+  backdrop-filter: blur(4px);
+  animation: hint-rise 200ms var(--cm-ease) both;
+}
+
+.overlay__icon {
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.overlay__reason {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.overlay__move {
+  font-size: 0.75rem;
+  color: var(--cm-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes hint-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay {
+    animation: none;
+  }
+}
