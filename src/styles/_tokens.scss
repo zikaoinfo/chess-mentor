@@ -59,6 +59,11 @@
   // Check — gentle coral glow.
   --cm-check: #e0625b;
 
+  // Coaching hint — origin/target highlight + arrow.
+  --cm-hint: #5b7ce0;
+  --cm-hint-from: rgba(91, 124, 224, 0.4);
+  --cm-hint-to: rgba(91, 124, 224, 0.6);
+
   // ─── Spacing scale ────────────────────────────────────────────────────
   --cm-space-1: 0.25rem;
   --cm-space-2: 0.5rem;

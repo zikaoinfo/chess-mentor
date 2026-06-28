@@ -1,0 +1,198 @@
+import { computed, inject } from '@angular/core';
+import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import { Chess } from 'chess.js';
+
+import {
+  CoachingMessage,
+  Difficulty,
+  HintState,
+  InstructorMove,
+  InstructorPhase,
+} from '../models/instructor.model';
+import { InstructorService } from '../services/instructor.service';
+
+const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
+
+interface InstructorState {
+  readonly difficulty: Difficulty;
+  readonly phase: InstructorPhase;
+  readonly currentFen: string;
+  readonly moveHistory: readonly InstructorMove[];
+  readonly hint: HintState | null;
+  readonly coaching: CoachingMessage | null;
+  readonly playerColor: 'white' | 'black';
+}
+
+const initialState: InstructorState = {
+  difficulty: 'beginner',
+  phase: 'idle',
+  currentFen: START_FEN,
+  moveHistory: [],
+  hint: null,
+  coaching: null,
+  playerColor: 'white',
+};
+
+function uciToMove(uci: string): { from: string; to: string; promotion?: string } {
+  return { from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci.length > 4 ? uci[4] : undefined };
+}
+
+function sanHistory(moves: readonly InstructorMove[]): string {
+  return moves.map((m) => m.san).join(' ');
+}
+
+/**
+ * Global store for a coached game against the bot. Owns the position, move
+ * history, current hint and coaching bubble, and the phase machine
+ * (idle → player-turn ↔ bot-thinking → … → game-over). chess.js validates and
+ * applies moves; the InstructorService supplies bot moves and coaching.
+ */
+export const InstructorStore = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+  withComputed(({ phase, moveHistory }) => ({
+    isPlayerTurn: computed(() => phase() === 'player-turn'),
+    isThinking: computed(() => phase() === 'bot-thinking'),
+    isGameOver: computed(() => phase() === 'game-over'),
+    /** Last move played, UCI, for board highlighting. */
+    lastMove: computed(() => moveHistory().at(-1)?.uci ?? null),
+  })),
+  withMethods((store, service = inject(InstructorService)) => {
+    function applyBotMove(): void {
+      void runBot();
+    }
+
+    async function runBot(): Promise<void> {
+      const fen = store.currentFen();
+      const difficulty = store.difficulty();
+      patchState(store, { phase: 'bot-thinking' });
+
+      const uci = await service.botMove(fen, difficulty);
+      const chess = new Chess(fen);
+      let move;
+      try {
+        move = uci ? chess.move(uciToMove(uci)) : null;
+      } catch {
+        move = null;
+      }
+      if (!move) {
+        patchState(store, { phase: store.phase() === 'bot-thinking' ? 'game-over' : store.phase() });
+        return;
+      }
+
+      const newFen = chess.fen();
+      const over = chess.isGameOver();
+      const botMove: InstructorMove = { uci: move.lan, san: move.san, by: 'bot' };
+      patchState(store, {
+        currentFen: newFen,
+        moveHistory: [...store.moveHistory(), botMove],
+        phase: over ? 'game-over' : 'player-turn',
+      });
+
+      // Explain the bot move in natural language (async — attach when ready).
+      const coaching = await service.coach({
+        difficulty,
+        fen: newFen,
+        moveHistory: sanHistory(store.moveHistory()),
+        type: 'explanation',
+        trigger: 'bot-move',
+        instruction: `Tu joues contre un débutant. Tu (le bot) viens de jouer ${move.san}. Explique en une phrase simple pourquoi tu joues ce coup, sans donner de longue variante.`,
+      });
+      patchState(store, {
+        coaching,
+        moveHistory: store
+          .moveHistory()
+          .map((m, i, arr) => (i === arr.length - 1 && m.by === 'bot' ? { ...m, explanation: coaching.text } : m)),
+      });
+    }
+
+    async function coachPlayerMove(san: string, fen: string, difficulty: Difficulty): Promise<void> {
+      const coaching = await service.coach({
+        difficulty,
+        fen,
+        moveHistory: sanHistory(store.moveHistory()),
+        type: 'tip',
+        trigger: 'player-move',
+        instruction: `Le joueur vient de jouer ${san}. Évalue ce coup en une phrase (bon, acceptable, ou à éviter) sans dévoiler la suite de la partie.`,
+      });
+      // Only surface if the bot hasn't already spoken about its reply.
+      if (store.phase() === 'bot-thinking') {
+        patchState(store, { coaching });
+      }
+    }
+
+    return {
+      /** Start a fresh coached game. */
+      newGame(difficulty: Difficulty, playerColor: 'white' | 'black' = 'white'): void {
+        patchState(store, {
+          ...initialState,
+          difficulty,
+          playerColor,
+          phase: playerColor === 'white' ? 'player-turn' : 'bot-thinking',
+        });
+        if (playerColor === 'black') applyBotMove();
+      },
+
+      setDifficulty(difficulty: Difficulty): void {
+        patchState(store, { difficulty });
+      },
+
+      /** Attempt the solver's move (UCI). Returns false if illegal / not their turn. */
+      playerMove(uci: string): boolean {
+        if (store.phase() !== 'player-turn') return false;
+
+        const chess = new Chess(store.currentFen());
+        let move;
+        try {
+          move = chess.move(uciToMove(uci));
+        } catch {
+          move = null;
+        }
+        if (!move) return false;
+
+        const playerMove: InstructorMove = { uci: move.lan, san: move.san, by: 'player' };
+        const over = chess.isGameOver();
+        patchState(store, {
+          currentFen: chess.fen(),
+          moveHistory: [...store.moveHistory(), playerMove],
+          hint: null,
+          coaching: null,
+          phase: over ? 'game-over' : 'bot-thinking',
+        });
+
+        void coachPlayerMove(move.san, chess.fen(), store.difficulty());
+        if (!over) applyBotMove();
+        return true;
+      },
+
+      /** Request a hint: best move from Stockfish + a Claude explanation. */
+      async requestHint(): Promise<void> {
+        if (store.phase() !== 'player-turn') return;
+        const fen = store.currentFen();
+        const difficulty = store.difficulty();
+        const best = await service.bestMove(fen, difficulty);
+        if (!best || store.phase() !== 'player-turn') return;
+
+        const from = best.slice(0, 2);
+        const to = best.slice(2, 4);
+        patchState(store, {
+          hint: { from, to, reason: 'Regarde ce coup.', arrows: [{ from, to }] },
+        });
+
+        const coaching = await service.coach({
+          difficulty,
+          fen,
+          moveHistory: sanHistory(store.moveHistory()),
+          type: 'tip',
+          trigger: 'hint-request',
+          instruction: `Le meilleur coup pour le joueur est d'aller de ${from} vers ${to}. Explique en une phrase simple pourquoi, sans donner d'autre coup.`,
+        });
+        const current = store.hint();
+        patchState(store, {
+          coaching,
+          hint: current ? { ...current, reason: coaching.text } : current,
+        });
+      },
+    };
+  }),
+);

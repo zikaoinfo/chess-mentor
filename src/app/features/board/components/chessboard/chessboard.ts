@@ -7,6 +7,7 @@ import {
   output,
 } from '@angular/core';
 import { Orientation } from '../../../../core/models/game-state.model';
+import { HintState } from '../../../../core/models/instructor.model';
 import { BoardSquare, fenToBoard, fenTurn, Piece } from '../../utils/fen.utils';
 import { legalTargets } from '../../utils/move-engine';
 
@@ -37,8 +38,15 @@ export class Chessboard {
   readonly interactive = input<boolean>(true);
   /** Last move played, UCI, highlighted on the board. */
   readonly lastMove = input<string | null>(null);
+  /** Coaching hint to surface (origin/target highlight + arrow). */
+  readonly hintState = input<HintState | null>(null);
+  /** When true the board is locked while the bot is thinking. */
+  readonly lockedForBot = input<boolean>(false);
 
   readonly move = output<string>();
+
+  /** Effective interactivity — disabled while the bot is to move. */
+  protected readonly active = computed(() => this.interactive() && !this.lockedForBot());
 
   /** Selected source square; auto-clears whenever the position changes. */
   protected readonly selected = linkedSignal<string, string | null>({
@@ -63,8 +71,34 @@ export class Chessboard {
     return uci ? new Set([uci.slice(0, 2), uci.slice(2, 4)]) : new Set<string>();
   });
 
+  /** Centre (in the 0–100 board viewBox) of a square, respecting orientation. */
+  private squareCenter(name: string): { x: number; y: number } {
+    const file = name.charCodeAt(0) - 97; // a=0 … h=7
+    const rank = Number(name[1]) - 1; // 1=0 … 8=7
+    const col = this.orientation() === 'white' ? file : 7 - file;
+    const row = this.orientation() === 'white' ? 7 - rank : rank;
+    return { x: col * 12.5 + 6.25, y: row * 12.5 + 6.25 };
+  }
+
+  /** Geometry of the hint arrow, or null when no hint is active. */
+  protected readonly hintArrow = computed<{ x1: number; y1: number; x2: number; y2: number } | null>(() => {
+    const hint = this.hintState();
+    if (!hint) return null;
+    const a = this.squareCenter(hint.from);
+    const b = this.squareCenter(hint.to);
+    return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
+  });
+
   protected glyph(piece: Piece | null): string {
     return piece ? GLYPHS[piece.type] : '';
+  }
+
+  protected isHintFrom(name: string): boolean {
+    return this.hintState()?.from === name;
+  }
+
+  protected isHintTo(name: string): boolean {
+    return this.hintState()?.to === name;
   }
 
   protected isSelected(name: string): boolean {
@@ -80,7 +114,7 @@ export class Chessboard {
   }
 
   protected onSquare(square: BoardSquare): void {
-    if (!this.interactive()) return;
+    if (!this.active()) return;
 
     const from = this.selected();
     if (from && this.legal().has(square.name)) {

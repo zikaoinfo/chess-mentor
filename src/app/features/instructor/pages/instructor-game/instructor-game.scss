@@ -1,0 +1,38 @@
+.game {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+  gap: var(--cm-space-6);
+  align-items: start;
+}
+
+.game__board {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.game__side {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 901px) and (max-width: 1100px) {
+  .game {
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: var(--cm-space-4);
+  }
+}
+
+@media (max-width: 900px) {
+  .game {
+    grid-template-columns: 1fr;
+    gap: var(--cm-space-4);
+  }
+
+  .game__side {
+    width: 100%;
+    max-width: min(100%, 92vmin, 82vh, 1200px);
+    margin-inline: auto;
+  }
+}

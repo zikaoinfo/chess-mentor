@@ -1,0 +1,25 @@
+<section class="game">
+  <div class="game__board">
+    <app-chessboard
+      [fen]="fen()"
+      [orientation]="playerColor()"
+      [interactive]="isPlayerTurn()"
+      [lockedForBot]="isThinking()"
+      [lastMove]="lastMove()"
+      [hintState]="hint()"
+      (move)="onMove($event)"
+    />
+    <app-hint-overlay [hint]="hint()" />
+  </div>
+
+  <aside class="game__side">
+    <app-instructor-panel
+      [difficulty]="difficulty()"
+      [phase]="phase()"
+      [coaching]="coaching()"
+      (difficultyChange)="onDifficulty($event)"
+      (hint)="onHint()"
+      (newGame)="onNewGame()"
+    />
+  </aside>
+</section>
