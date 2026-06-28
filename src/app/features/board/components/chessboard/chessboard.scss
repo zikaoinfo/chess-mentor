@@ -1,10 +1,12 @@
 :host {
   // The host is a flex item; without an explicit width it shrinks to the
-  // SVG's intrinsic 300px. Fill the available column (capped to the viewport)
-  // so the board scales up on desktop and fills the screen on mobile.
+  // SVG's intrinsic 300px. Fill the available column, capped by the viewport
+  // so the board grows on desktop yet always fits:
+  //   - 92vmin  → fills the width on a phone (portrait)
+  //   - 82vh    → grows with the window on desktop without overflowing height
   display: block;
   width: 100%;
-  max-width: min(100%, 92vmin);
+  max-width: min(100%, 92vmin, 82vh);
   margin-inline: auto;
 }
 

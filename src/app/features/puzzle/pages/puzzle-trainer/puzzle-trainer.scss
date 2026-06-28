@@ -70,7 +70,7 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: min(100%, 92vmin);
+  max-width: min(100%, 92vmin, 82vh);
   margin-inline: auto;
   aspect-ratio: 1 / 1;
   border: 1px dashed var(--cm-border);
