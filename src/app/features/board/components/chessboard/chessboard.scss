@@ -18,6 +18,15 @@
   // Hairline seam between squares for a crisp, precise grid.
   stroke: rgba(0, 0, 0, 0.04);
   stroke-width: 0.15;
+  transition: fill 140ms var(--cm-ease);
+}
+
+// Subtle, safe hover cue — a faint wash over the square (no transform on the
+// SVG text, which iOS Safari mishandles and would crop pieces at the edges).
+@media (hover: hover) {
+  .square--interactive:hover .square__bg {
+    fill-opacity: 0.92;
+  }
 }
 
 // Keyboard focus — clearly visible, accessible.
@@ -28,14 +37,12 @@
 
 // ─── Pieces ─────────────────────────────────────────────────────────────
 .piece {
-  font-size: 9.5px;
+  // Kept comfortably inside the square across platforms — iOS renders the
+  // chess glyphs larger than Android/desktop, so leave breathing room.
+  font-size: 8.4px;
   pointer-events: none;
   // Soft, subtle drop shadow for depth & separation from the square.
   filter: url(#cm-piece-shadow);
-  // GPU-friendly hover/selection micro-interaction.
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: transform 170ms var(--cm-ease);
 }
 
 .piece--white {
@@ -49,17 +56,6 @@
   // Faint lighter rim so the piece keeps visible detail on dark squares.
   stroke: var(--cm-piece-black-stroke);
   stroke-width: 0.16;
-}
-
-// Subtle tactile elevation on hover (pointer devices only).
-@media (hover: hover) {
-  .square--interactive:hover .piece {
-    transform: translateY(-0.25px) scale(1.05);
-  }
-}
-
-.square--selected .piece {
-  transform: translateY(-0.3px) scale(1.06);
 }
 
 // ─── Coordinates ────────────────────────────────────────────────────────
@@ -98,18 +94,14 @@
   stroke-width: 0.7;
   pointer-events: none;
   filter: url(#cm-select-glow);
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: cm-pop var(--cm-anim) var(--cm-ease) both;
+  animation: cm-fade var(--cm-anim) var(--cm-ease) both;
 }
 
 // ─── Legal move indicators ──────────────────────────────────────────────
 .hint {
   fill: var(--cm-legal-on-light);
   pointer-events: none;
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: cm-pop 160ms var(--cm-ease) both;
+  animation: cm-fade 150ms var(--cm-ease) both;
 }
 
 .hint--on-dark {
@@ -161,18 +153,7 @@
   }
 }
 
-// ─── Animations ─────────────────────────────────────────────────────────
-@keyframes cm-pop {
-  from {
-    opacity: 0;
-    transform: scale(0.55);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
+// ─── Animations (opacity only — GPU friendly, cross-browser safe) ────────
 @keyframes cm-fade {
   from {
     opacity: 0;
@@ -184,7 +165,7 @@
 
 // ─── Reduced motion ─────────────────────────────────────────────────────
 @media (prefers-reduced-motion: reduce) {
-  .piece,
+  .square__bg,
   .hint,
   .hint-square,
   .hint-arrow,
@@ -193,10 +174,5 @@
   .lastmove {
     animation: none;
     transition: none;
-  }
-
-  .square--interactive:hover .piece,
-  .square--selected .piece {
-    transform: none;
   }
 }
