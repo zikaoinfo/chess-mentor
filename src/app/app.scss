@@ -50,3 +50,16 @@
   margin: 0 auto;
   padding: var(--cm-space-8) var(--cm-space-6);
 }
+
+// Give the board more room on phones: trim chrome and tighten padding.
+@media (max-width: 560px) {
+  .app-header {
+    flex-wrap: wrap;
+    gap: var(--cm-space-2);
+    padding: var(--cm-space-3) var(--cm-space-4);
+  }
+
+  .app-main {
+    padding: var(--cm-space-4) var(--cm-space-3);
+  }
+}

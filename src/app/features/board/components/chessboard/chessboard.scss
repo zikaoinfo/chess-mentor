@@ -1,5 +1,11 @@
 :host {
+  // The host is a flex item; without an explicit width it shrinks to the
+  // SVG's intrinsic 300px. Fill the available column (capped to the viewport)
+  // so the board scales up on desktop and fills the screen on mobile.
   display: block;
+  width: 100%;
+  max-width: min(100%, 92vmin);
+  margin-inline: auto;
 }
 
 .square--interactive {

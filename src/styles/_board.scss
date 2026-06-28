@@ -3,13 +3,17 @@
 // these helpers cover the surrounding layout and coordinate labels.
 
 .cm-board-wrap {
-  width: min(100%, 560px);
+  // Fills the chessboard host, which owns the responsive sizing (see
+  // chessboard.scss :host). `vmin`-based capping keeps the board square and
+  // on-screen in both portrait and landscape.
+  width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: var(--cm-radius);
   overflow: hidden;
   box-shadow: var(--cm-shadow);
   user-select: none;
-  touch-action: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
 }
 
 .cm-board-svg {
