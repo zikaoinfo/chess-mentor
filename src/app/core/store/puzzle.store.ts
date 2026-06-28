@@ -11,6 +11,7 @@ import { type } from '@ngrx/signals';
 import { GameState } from '../models/game-state.model';
 import { LichessPuzzle, PuzzleAttempt } from '../models/puzzle.model';
 import { StorageService } from '../services/storage.service';
+import { SoundService } from '../services/sound.service';
 import { applySolverMove, setupPuzzle } from '../../features/board/utils/move-engine';
 
 interface SessionState {
@@ -73,7 +74,7 @@ export const PuzzleStore = signalStore(
     }),
     isSolved: computed(() => game().status === 'solved'),
   })),
-  withMethods((store, storage = inject(StorageService)) => {
+  withMethods((store, storage = inject(StorageService), sound = inject(SoundService)) => {
     function recordAttempt(correct: boolean): void {
       const puzzle = store.puzzle();
       if (!puzzle) return;
@@ -129,6 +130,7 @@ export const PuzzleStore = signalStore(
             lastMoveCorrect: false,
             streak: 0,
           });
+          sound.error();
           return;
         }
 
@@ -143,6 +145,7 @@ export const PuzzleStore = signalStore(
             streak,
             bestStreak: Math.max(store.bestStreak(), streak),
           });
+          sound.success();
           return;
         }
 
@@ -151,6 +154,7 @@ export const PuzzleStore = signalStore(
           lastMoveCorrect: true,
           lastMove: result.opponentMove ?? uci,
         });
+        sound.move();
       },
     };
   }),

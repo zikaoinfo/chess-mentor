@@ -30,7 +30,31 @@
 
 .app-nav {
   display: flex;
+  align-items: center;
   gap: var(--cm-space-4);
+}
+
+.sound-toggle {
+  appearance: none;
+  border: 1px solid var(--cm-border);
+  background: var(--cm-surface-2);
+  color: var(--cm-text);
+  border-radius: 999px;
+  width: 2rem;
+  height: 2rem;
+  font-size: 0.95rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.sound-toggle:hover {
+  background: var(--cm-border);
+}
+
+.sound-toggle:focus-visible {
+  outline: 2px solid var(--cm-accent);
+  outline-offset: 2px;
 }
 
 .app-nav a {

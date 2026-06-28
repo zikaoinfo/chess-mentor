@@ -10,6 +10,7 @@ import {
   InstructorPhase,
 } from '../models/instructor.model';
 import { InstructorService } from '../services/instructor.service';
+import { SoundService } from '../services/sound.service';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -57,7 +58,15 @@ export const InstructorStore = signalStore(
     /** Last move played, UCI, for board highlighting. */
     lastMove: computed(() => moveHistory().at(-1)?.uci ?? null),
   })),
-  withMethods((store, service = inject(InstructorService)) => {
+  withMethods((store, service = inject(InstructorService), sound = inject(SoundService)) => {
+    // One sound per move: game-over > check > capture > plain move.
+    function moveSound(move: { san: string; captured?: string }, over: boolean): void {
+      if (over) sound.gameOver();
+      else if (move.san.includes('+')) sound.check();
+      else if (move.captured) sound.capture();
+      else sound.move();
+    }
+
     function applyBotMove(): void {
       void runBot();
     }
@@ -88,6 +97,7 @@ export const InstructorStore = signalStore(
         moveHistory: [...store.moveHistory(), botMove],
         phase: over ? 'game-over' : 'player-turn',
       });
+      moveSound(move, over);
 
       // Explain the bot move in natural language (async — attach when ready).
       const coaching = await service.coach({
@@ -159,6 +169,7 @@ export const InstructorStore = signalStore(
           coaching: null,
           phase: over ? 'game-over' : 'bot-thinking',
         });
+        moveSound(move, over);
 
         void coachPlayerMove(move.san, chess.fen(), store.difficulty());
         if (!over) applyBotMove();
@@ -178,6 +189,7 @@ export const InstructorStore = signalStore(
         patchState(store, {
           hint: { from, to, reason: 'Regarde ce coup.', arrows: [{ from, to }] },
         });
+        sound.hint();
 
         const coaching = await service.coach({
           difficulty,

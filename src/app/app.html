@@ -10,6 +10,17 @@
     </a>
     <a routerLink="/instructor" routerLinkActive="active">Jouer contre le bot</a>
     <a routerLink="/stats" routerLinkActive="active">Progression</a>
+
+    <button
+      type="button"
+      class="sound-toggle"
+      (click)="toggleSound()"
+      [attr.aria-pressed]="muted()"
+      [attr.aria-label]="muted() ? 'Activer le son' : 'Couper le son'"
+      [title]="muted() ? 'Activer le son' : 'Couper le son'"
+    >
+      {{ muted() ? '🔇' : '🔊' }}
+    </button>
   </nav>
 </header>
 
