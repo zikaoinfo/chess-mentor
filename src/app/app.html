@@ -1,0 +1,17 @@
+<header class="app-header">
+  <a class="brand" routerLink="/">
+    <span class="brand__mark" aria-hidden="true">♞</span>
+    <span class="brand__name">{{ title }}</span>
+  </a>
+
+  <nav class="app-nav" aria-label="Navigation principale">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Entraînement
+    </a>
+    <a routerLink="/stats" routerLinkActive="active">Progression</a>
+  </nav>
+</header>
+
+<main class="app-main">
+  <router-outlet />
+</main>

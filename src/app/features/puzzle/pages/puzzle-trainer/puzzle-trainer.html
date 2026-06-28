@@ -1,0 +1,56 @@
+<section class="trainer">
+  <header class="trainer__bar">
+    <nav class="themes" aria-label="Thèmes de puzzle">
+      @for (theme of themes; track theme) {
+        <button
+          type="button"
+          class="cm-btn theme-btn"
+          [class.theme-btn--active]="theme === activeTheme()"
+          (click)="selectTheme(theme)"
+        >
+          {{ theme | themeLabel }}
+        </button>
+      }
+    </nav>
+
+    <div class="trainer__stats">
+      <app-streak-badge [streak]="streak()" />
+      <span class="solved" title="Puzzles résolus">✓ {{ solvedCount() }}</span>
+    </div>
+  </header>
+
+  <div class="trainer__body">
+    <div class="trainer__board">
+      @if (isLoading() && !puzzle()) {
+        <div class="placeholder">Chargement du puzzle…</div>
+      } @else if (error()) {
+        <div class="placeholder placeholder--error">
+          Impossible de charger un puzzle.
+          <button type="button" class="cm-btn" (click)="onNext()">Réessayer</button>
+        </div>
+      } @else if (puzzle(); as p) {
+        <app-chessboard
+          [fen]="game().fen"
+          [orientation]="game().orientation"
+          [interactive]="interactive()"
+          [lastMove]="lastMove()"
+          (move)="onMove($event)"
+        />
+      }
+    </div>
+
+    <aside class="trainer__side">
+      @if (puzzle(); as p) {
+        <app-puzzle-card [puzzle]="p" [orientation]="game().orientation" />
+        <app-feedback-panel
+          [status]="game().status"
+          [lastMoveCorrect]="lastMoveCorrect()"
+          (next)="onNext()"
+        />
+        @if (game().status === 'playing') {
+          <button type="button" class="cm-btn skip" (click)="onNext()">Passer ce puzzle</button>
+        }
+      }
+    </aside>
+  </div>
+</section>

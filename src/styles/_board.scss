@@ -1,0 +1,26 @@
+// Board-specific shared styles.
+// The board itself is rendered as inline SVG by the chessboard component;
+// these helpers cover the surrounding layout and coordinate labels.
+
+.cm-board-wrap {
+  width: min(100%, 560px);
+  aspect-ratio: 1 / 1;
+  border-radius: var(--cm-radius);
+  overflow: hidden;
+  box-shadow: var(--cm-shadow);
+  user-select: none;
+  touch-action: none;
+}
+
+.cm-board-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cm-coord {
+  font-size: 3px;
+  font-weight: 600;
+  fill: var(--cm-text-muted);
+  pointer-events: none;
+}
