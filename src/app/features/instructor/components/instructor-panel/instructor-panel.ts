@@ -47,9 +47,11 @@ export class InstructorPanel {
   readonly gameResult = input<GameResult | null>(null);
   readonly moves = input<readonly InstructorMove[]>([]);
   readonly selectedBot = input<BotPersona | null>(null);
+  readonly playerColor = input<'white' | 'black'>('white');
 
   readonly difficultyChange = output<Difficulty>();
   readonly botSelect = output<BotPersona | null>();
+  readonly colorSelect = output<'white' | 'black'>();
   readonly hint = output<void>();
   readonly newGame = output<void>();
 

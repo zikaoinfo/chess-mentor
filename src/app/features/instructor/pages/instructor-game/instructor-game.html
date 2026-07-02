@@ -22,8 +22,10 @@
       [gameResult]="gameResult()"
       [moves]="moveHistory()"
       [selectedBot]="bot()"
+      [playerColor]="playerColor()"
       (difficultyChange)="onDifficulty($event)"
       (botSelect)="onSelectBot($event)"
+      (colorSelect)="onSelectColor($event)"
       (hint)="onHint()"
       (newGame)="onNewGame()"
     />

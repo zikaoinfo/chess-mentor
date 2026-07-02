@@ -56,11 +56,16 @@ export class InstructorGame {
   }
 
   protected onNewGame(): void {
-    this.store.newGame(this.difficulty(), 'white', this.bot());
+    this.store.newGame(this.difficulty(), this.playerColor(), this.bot());
   }
 
   protected onSelectBot(bot: BotPersona | null): void {
-    this.store.newGame(this.difficulty(), 'white', bot);
+    this.store.newGame(this.difficulty(), this.playerColor(), bot);
+  }
+
+  protected onSelectColor(color: 'white' | 'black'): void {
+    if (color === this.playerColor()) return;
+    this.store.newGame(this.difficulty(), color, this.bot());
   }
 
   protected onDifficulty(difficulty: Difficulty): void {
