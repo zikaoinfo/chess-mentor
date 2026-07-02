@@ -68,4 +68,16 @@ export const BOT_PRESETS: readonly BotPersona[] = [
     randomness: 0,
     captureBias: 0,
   },
+  {
+    id: 'athena',
+    name: 'Athéna',
+    avatar: '🦉',
+    elo: 1300,
+    style: 'positionnel',
+    intro: 'Au-delà de 1000 Elo, chaque coup a un plan. Montre-moi le tien.',
+    skill: 11,
+    contempt: 20,
+    randomness: 0,
+    captureBias: 0,
+  },
 ] as const;
