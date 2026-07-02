@@ -35,6 +35,15 @@ interface DragState {
   readonly moved: boolean;
 }
 
+export type PromotionPiece = 'q' | 'r' | 'b' | 'n';
+
+/** A pawn reached the last rank — the move waits for the piece choice. */
+interface PendingPromotion {
+  readonly from: string;
+  readonly to: string;
+  readonly color: 'w' | 'b';
+}
+
 /**
  * Interactive chessboard rendered as pure inline SVG — no external board
  * library. The FEN input is the single source of truth; moves are emitted as
@@ -77,6 +86,14 @@ export class Chessboard {
 
   /** In-flight pointer drag; null when idle. */
   protected readonly drag = signal<DragState | null>(null);
+
+  /** Promotion waiting for its piece; auto-cancels if the position changes. */
+  protected readonly pendingPromotion = linkedSignal<string, PendingPromotion | null>({
+    source: this.fen,
+    computation: () => null,
+  });
+
+  protected readonly promotionChoices: readonly PromotionPiece[] = ['q', 'r', 'b', 'n'];
 
   /** The piece following the pointer — only once the gesture is a real drag. */
   protected readonly dragPiece = computed<DragState | null>(() => {
@@ -181,14 +198,47 @@ export class Chessboard {
     return this.dropSquare() === name;
   }
 
+  private pieceAt(name: string): Piece | null {
+    return this.board().find((sq) => sq.name === name)?.piece ?? null;
+  }
+
+  /**
+   * Play `from`→`to` (already validated as legal). A promoting pawn move is
+   * held back until the player picks the piece; everything else emits now.
+   */
+  private playMove(from: string, to: string): void {
+    const piece = this.pieceAt(from);
+    this.selected.set(null);
+    if (piece?.type === 'p' && (to[1] === '8' || to[1] === '1')) {
+      this.pendingPromotion.set({ from, to, color: piece.color });
+      return;
+    }
+    this.move.emit(`${from}${to}`);
+  }
+
+  protected choosePromotion(piece: PromotionPiece): void {
+    const pending = this.pendingPromotion();
+    if (!pending) return;
+    this.pendingPromotion.set(null);
+    this.move.emit(`${pending.from}${pending.to}${piece}`);
+  }
+
+  protected cancelPromotion(): void {
+    this.pendingPromotion.set(null);
+  }
+
+  protected promotionGlyph(piece: PromotionPiece): string {
+    // Same U+FE0E trick as glyph(): force monochrome text rendering.
+    return GLYPHS[piece] + '\uFE0E';
+  }
+
   /** Select / play a square — shared by keyboard activation and taps. */
   protected onSquare(square: BoardSquare): void {
-    if (!this.active()) return;
+    if (!this.active() || this.pendingPromotion()) return;
 
     const from = this.selected();
     if (from && this.legal().has(square.name)) {
-      this.move.emit(`${from}${square.name}`);
-      this.selected.set(null);
+      this.playMove(from, square.name);
       return;
     }
 
@@ -200,14 +250,13 @@ export class Chessboard {
   }
 
   protected onPointerDown(event: PointerEvent, square: BoardSquare): void {
-    if (!this.active()) return;
+    if (!this.active() || this.pendingPromotion()) return;
     // Stops scrolling/text-selection kicking in mid-gesture on touch devices.
     event.preventDefault();
 
     const from = this.selected();
     if (from && this.legal().has(square.name)) {
-      this.move.emit(`${from}${square.name}`);
-      this.selected.set(null);
+      this.playMove(from, square.name);
       return;
     }
 
@@ -242,8 +291,7 @@ export class Chessboard {
     const point = this.toBoardPoint(event);
     const target = this.squareAt(point.x, point.y);
     if (target && target !== d.from && this.legal().has(target)) {
-      this.move.emit(`${d.from}${target}`);
-      this.selected.set(null);
+      this.playMove(d.from, target);
     } else if (target !== d.from) {
       // Dropped on an illegal square or off the board: cancel the selection.
       this.selected.set(null);
