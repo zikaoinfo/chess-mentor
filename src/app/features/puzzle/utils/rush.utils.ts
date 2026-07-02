@@ -1,3 +1,5 @@
+import { Chess } from 'chess.js';
+
 import { RushDifficulty, RushMode, RushScore } from '../../../core/models/rush.model';
 
 const LADDER: readonly RushDifficulty[] = ['easiest', 'easier', 'normal', 'harder', 'hardest'];
@@ -29,4 +31,21 @@ export function formatClock(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60);
   const s = totalSeconds % 60;
   return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+/** Solution UCIs replayed from the puzzle position, as readable SAN. */
+export function solutionSan(fen: string, solution: readonly string[]): readonly string[] {
+  try {
+    const chess = new Chess(fen);
+    return solution.map(
+      (uci) =>
+        chess.move({
+          from: uci.slice(0, 2),
+          to: uci.slice(2, 4),
+          promotion: uci.length > 4 ? uci[4] : 'q',
+        }).san,
+    );
+  } catch {
+    return solution;
+  }
 }

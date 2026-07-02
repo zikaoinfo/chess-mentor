@@ -25,7 +25,10 @@
 
   <h2 class="dashboard__subtitle">Derniers puzzles</h2>
   @if (recent().length === 0) {
-    <p class="empty">Aucun puzzle résolu pour l'instant. Lancez-vous dans l'entraînement !</p>
+    <p class="empty">
+      Aucun puzzle résolu pour l'instant.
+      <a routerLink="/">Lance-toi dans l'entraînement →</a>
+    </p>
   } @else {
     <ul class="history">
       @for (attempt of recent(); track attempt.puzzleId + attempt.solvedAt) {
@@ -38,4 +41,23 @@
       }
     </ul>
   }
+
+  <div class="backup">
+    <h2 class="backup__title">Mes données</h2>
+    <p class="backup__hint">
+      Tout est stocké sur cet appareil. Exporte une sauvegarde avant de changer de
+      téléphone, puis importe-la sur le nouveau.
+    </p>
+    <div class="backup__actions">
+      <button type="button" class="cm-btn" (click)="exportData()">⬇ Exporter mes données</button>
+      <label class="cm-btn backup__import">
+        ⬆ Importer une sauvegarde
+        <input type="file" accept="application/json,.json" (change)="importData($event)" hidden />
+      </label>
+    </div>
+    @if (backupMessage(); as msg) {
+      <p class="backup__status" role="status">{{ msg }}</p>
+    }
+  </div>
+
 </section>

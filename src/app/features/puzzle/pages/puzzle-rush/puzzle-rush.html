@@ -52,6 +52,27 @@
           <button type="button" class="cm-btn" (click)="backToMenu()">Changer de mode</button>
         </div>
       </div>
+
+      @if (failed().length > 0) {
+        <div class="missed">
+          <h2 class="missed__title">Puzzles ratés — voici les solutions</h2>
+          <div class="missed__grid">
+            @for (f of failed(); track $index) {
+              <figure class="missed__item">
+                <app-chessboard [fen]="f.fen" [interactive]="false" [orientation]="f.orientation" />
+                <figcaption class="missed__solution">
+                  <span class="missed__label">Solution :</span>
+                  @for (san of f.san; track $index) {
+                    <span class="missed__move" [class.missed__move--yours]="$index % 2 === 0">
+                      {{ san }}
+                    </span>
+                  }
+                </figcaption>
+              </figure>
+            }
+          </div>
+        </div>
+      }
     }
   }
 </section>

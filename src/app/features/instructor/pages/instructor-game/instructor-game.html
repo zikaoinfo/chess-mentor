@@ -1,4 +1,5 @@
 <section class="game">
+  <h1 class="visually-hidden">Jouer contre le bot</h1>
   <div class="game__board">
     <app-chessboard
       [fen]="fen()"
@@ -22,8 +23,11 @@
       [gameResult]="gameResult()"
       [moves]="moveHistory()"
       [selectedBot]="bot()"
+      [playerColor]="playerColor()"
       (difficultyChange)="onDifficulty($event)"
       (botSelect)="onSelectBot($event)"
+      (colorSelect)="onSelectColor($event)"
+      (undo)="onUndo()"
       (hint)="onHint()"
       (newGame)="onNewGame()"
     />

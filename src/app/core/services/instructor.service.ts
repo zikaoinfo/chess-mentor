@@ -265,12 +265,11 @@ export class InstructorService {
     return persona ? applyPersonaStyle(fen, engineUci, persona) : engineUci;
   }
 
-  /** Best move for a hint — deeper search (depth 12), no artificial delay. */
-  async bestMove(fen: string, difficulty: Difficulty): Promise<string> {
-    const uci = await this.getEngine().bestMove(fen, {
-      skill: skillForDifficulty(difficulty),
-      depth: 12,
-    });
+  /** Best move for a hint — full strength, deeper search, no delay. */
+  async bestMove(fen: string): Promise<string> {
+    // A hint must be a GOOD move: full engine strength regardless of the
+    // difficulty tier (the tier only weakens the OPPONENT, not the advice).
+    const uci = await this.getEngine().bestMove(fen, { skill: 20, depth: 12 });
     return uci ?? fallbackMove(fen);
   }
 

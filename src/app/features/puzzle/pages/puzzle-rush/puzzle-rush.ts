@@ -16,9 +16,17 @@ import { RushMode, RushScore } from '../../../../core/models/rush.model';
 import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { applySolverMove } from '../../../board/utils/move-engine';
 import { fenTurn } from '../../../board/utils/fen.utils';
-import { bestScore, durationFor, formatClock, targetDifficulty } from '../../utils/rush.utils';
+import { bestScore, durationFor, formatClock, solutionSan, targetDifficulty } from '../../utils/rush.utils';
 
 type Screen = 'menu' | 'running' | 'ended';
+
+/** A missed puzzle, kept for the end-of-run review. */
+interface FailedPuzzle {
+  readonly id: string;
+  readonly fen: string;
+  readonly san: readonly string[];
+  readonly orientation: 'white' | 'black';
+}
 
 /**
  * Puzzle Rush: chain as many puzzles as possible in 3/5 minutes, or survive —
@@ -44,6 +52,7 @@ export class PuzzleRush {
   protected readonly strikes = signal(0);
   protected readonly timeLeft = signal(0);
   protected readonly records = signal<readonly RushScore[]>([]);
+  protected readonly failed = signal<readonly FailedPuzzle[]>([]);
 
   protected readonly fen = signal<string | null>(null);
   protected readonly solutionIndex = signal(0);
@@ -87,6 +96,7 @@ export class PuzzleRush {
     this.mode.set(mode);
     this.score.set(0);
     this.strikes.set(0);
+    this.failed.set([]);
     this.puzzle = null;
     this.fen.set(null);
     this.lastLoadedId = null;
@@ -114,6 +124,15 @@ export class PuzzleRush {
     if (!result.correct) {
       this.sound.error();
       this.strikes.update((s) => s + 1);
+      this.failed.set([
+        ...this.failed(),
+        {
+          id: puzzle.id,
+          fen: puzzle.fen,
+          san: solutionSan(puzzle.fen, puzzle.solution),
+          orientation: fenTurn(puzzle.fen) === 'b' ? 'black' : 'white',
+        },
+      ]);
       if (this.isSurvival() && this.strikes() >= 3) {
         this.end();
         return;

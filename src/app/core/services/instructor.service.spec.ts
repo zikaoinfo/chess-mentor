@@ -22,9 +22,11 @@ describe('skillForDifficulty', () => {
 });
 
 describe('BOT_PRESETS', () => {
-  it('covers the four styles with unique ids and valid parameters', () => {
+  it('covers every style with unique ids and valid parameters', () => {
     const styles = new Set(BOT_PRESETS.map((b) => b.style));
     expect(styles).toEqual(new Set(['agressif', 'positionnel', 'defensif', 'hasardeux']));
+    // Progression ladder: a bot above the app's 1000 Elo goal exists.
+    expect(Math.max(...BOT_PRESETS.map((b) => b.elo))).toBeGreaterThanOrEqual(1300);
     expect(new Set(BOT_PRESETS.map((b) => b.id)).size).toBe(BOT_PRESETS.length);
     for (const b of BOT_PRESETS) {
       expect(b.skill).toBeGreaterThanOrEqual(0);

@@ -47,4 +47,26 @@ export const DRILLS: readonly EndgameDrill[] = [
     fen: '3k4/8/3K4/3P4/8/8/8/8 w - - 0 1',
     goal: 'promote',
   },
+  {
+    id: 'lucena-1',
+    category: 'Tour et pion',
+    label: 'Position de Lucena (le pont)',
+    // Win by building the bridge: Rc4, king out via c7/c8, rook shields checks.
+    fen: '1K6/1P1k4/8/8/8/8/r7/2R5 w - - 0 1',
+    goal: 'promote',
+  },
+  {
+    id: 'heavy-1',
+    category: 'Pièces lourdes',
+    label: 'Mat des deux tours (escalier)',
+    fen: '4k3/8/8/8/8/8/R6R/4K3 w - - 0 1',
+    goal: 'mate',
+  },
+  {
+    id: 'heavy-2',
+    category: 'Pièces lourdes',
+    label: 'Mat Dame + Tour',
+    fen: '3k4/8/8/8/8/8/Q6R/4K3 w - - 0 1',
+    goal: 'mate',
+  },
 ] as const;

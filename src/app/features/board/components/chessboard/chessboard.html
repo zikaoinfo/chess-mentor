@@ -223,4 +223,26 @@
       >{{ glyph(d.piece) }}</text>
     }
   </svg>
+
+  <!-- Promotion picker — the move is held until a piece is chosen. -->
+  @if (pendingPromotion(); as promo) {
+    <div class="promo" role="dialog" aria-label="Choisir la pièce de promotion">
+      <p class="promo__title">Promotion !</p>
+      <div class="promo__choices">
+        @for (p of promotionChoices; track p) {
+          <button
+            type="button"
+            class="promo__btn"
+            [class.promo__btn--white]="promo.color === 'w'"
+            [class.promo__btn--black]="promo.color === 'b'"
+            (click)="choosePromotion(p)"
+            [attr.aria-label]="'Promouvoir en ' + p"
+          >
+            {{ promotionGlyph(p) }}
+          </button>
+        }
+      </div>
+      <button type="button" class="promo__cancel" (click)="cancelPromotion()">Annuler</button>
+    </div>
+  }
 </div>

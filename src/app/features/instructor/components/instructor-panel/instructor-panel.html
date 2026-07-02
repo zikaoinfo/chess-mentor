@@ -45,6 +45,30 @@
     </div>
   </div>
 
+  <div class="field">
+    <span class="field__label">Je joue avec</span>
+    <div class="difficulty" role="group" aria-label="Choix de la couleur">
+      <button
+        type="button"
+        class="cm-btn diff-btn"
+        [class.diff-btn--active]="playerColor() === 'white'"
+        [attr.aria-pressed]="playerColor() === 'white'"
+        (click)="colorSelect.emit('white')"
+      >
+        ⚪ Les Blancs
+      </button>
+      <button
+        type="button"
+        class="cm-btn diff-btn"
+        [class.diff-btn--active]="playerColor() === 'black'"
+        [attr.aria-pressed]="playerColor() === 'black'"
+        (click)="colorSelect.emit('black')"
+      >
+        ⚫ Les Noirs
+      </button>
+    </div>
+  </div>
+
   @if (gameOver()) {
     <div class="banner" role="status">
       <span aria-hidden="true">🏁</span>
@@ -71,6 +95,15 @@
   <div class="actions">
     <button type="button" class="cm-btn" [disabled]="!canHint()" (click)="hint.emit()">
       Indice
+    </button>
+    <button
+      type="button"
+      class="cm-btn"
+      [disabled]="!canUndo()"
+      (click)="undo.emit()"
+      title="Reprendre ton dernier coup"
+    >
+      ↩ Reprendre
     </button>
     <button type="button" class="cm-btn cm-btn--primary" (click)="newGame.emit()">
       Nouvelle partie

@@ -6,6 +6,77 @@
   width: 100%;
   max-width: min(100%, 92vmin, 82vh, 1200px);
   margin-inline: auto;
+  // Anchor for the promotion picker overlay.
+  position: relative;
+}
+
+// ─── Promotion picker ────────────────────────────────────────────────────
+.promo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--cm-space-3);
+  background: rgba(10, 12, 24, 0.62);
+  border-radius: var(--cm-board-radius);
+  backdrop-filter: blur(2px);
+  z-index: 2;
+}
+
+.promo__title {
+  margin: 0;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+.promo__choices {
+  display: flex;
+  gap: var(--cm-space-3);
+}
+
+.promo__btn {
+  width: clamp(52px, 14vmin, 76px);
+  height: clamp(52px, 14vmin, 76px);
+  font-size: clamp(30px, 9vmin, 48px);
+  line-height: 1;
+  border-radius: var(--cm-radius);
+  border: 1px solid var(--cm-border);
+  background: var(--cm-surface);
+  cursor: pointer;
+  transition: transform 120ms var(--cm-ease), border-color 120ms var(--cm-ease);
+
+  &:hover,
+  &:focus-visible {
+    transform: translateY(-2px);
+    border-color: var(--cm-accent);
+  }
+}
+
+.promo__btn--white {
+  color: #f5efe2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55);
+}
+
+.promo__btn--black {
+  color: #2b2b33;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.18);
+}
+
+.promo__cancel {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: var(--cm-space-1) var(--cm-space-2);
+
+  &:hover {
+    color: #fff;
+  }
 }
 
 // ─── Squares ──────────────────────────────────────────────────────────────
