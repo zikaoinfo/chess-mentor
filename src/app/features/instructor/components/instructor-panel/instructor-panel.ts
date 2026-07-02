@@ -54,6 +54,7 @@ export class InstructorPanel {
   readonly colorSelect = output<'white' | 'black'>();
   readonly hint = output<void>();
   readonly newGame = output<void>();
+  readonly undo = output<void>();
 
   protected readonly bots = BOT_PRESETS;
 
@@ -64,6 +65,11 @@ export class InstructorPanel {
   ];
 
   protected readonly canHint = computed(() => this.phase() === 'player-turn');
+
+  /** Undo needs a full move pair to rewind, and the player's turn to do it. */
+  protected readonly canUndo = computed(
+    () => this.phase() === 'player-turn' && this.moves().length >= 2,
+  );
   protected readonly thinking = computed(() => this.phase() === 'bot-thinking');
   protected readonly gameOver = computed(() => this.phase() === 'game-over');
 

@@ -51,20 +51,32 @@ export class InstructorGame {
     void this.store.requestHint();
   }
 
+  protected onUndo(): void {
+    this.store.undoMove();
+  }
+
+  /** A restart mid-game silently discards it — ask first. */
+  private confirmAbandon(): boolean {
+    const inProgress = this.moveHistory().length > 0 && this.gameResult() === null;
+    return !inProgress || globalThis.confirm('Abandonner la partie en cours ?');
+  }
+
   protected onDismissHint(): void {
     this.store.clearHint();
   }
 
   protected onNewGame(): void {
+    if (!this.confirmAbandon()) return;
     this.store.newGame(this.difficulty(), this.playerColor(), this.bot());
   }
 
   protected onSelectBot(bot: BotPersona | null): void {
+    if (bot?.id === this.bot()?.id || !this.confirmAbandon()) return;
     this.store.newGame(this.difficulty(), this.playerColor(), bot);
   }
 
   protected onSelectColor(color: 'white' | 'black'): void {
-    if (color === this.playerColor()) return;
+    if (color === this.playerColor() || !this.confirmAbandon()) return;
     this.store.newGame(this.difficulty(), color, this.bot());
   }
 

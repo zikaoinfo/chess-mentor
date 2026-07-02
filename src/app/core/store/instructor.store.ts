@@ -302,6 +302,33 @@ export const InstructorStore = signalStore(
       clearHint(): void {
         patchState(store, { hint: null });
       },
+
+      /**
+       * Take back the last full move pair (bot reply + player move) and hand
+       * the turn back to the player. Only meaningful while it's their turn.
+       */
+      undoMove(): void {
+        if (store.phase() !== 'player-turn') return;
+        const history = store.moveHistory();
+        if (history.length < 2) return;
+
+        const trimmed = history.slice(0, -2);
+        const chess = new Chess();
+        for (const m of trimmed) chess.move(uciToMove(m.uci));
+        patchState(store, {
+          currentFen: chess.fen(),
+          moveHistory: trimmed,
+          hint: null,
+          coaching: {
+            type: 'tip',
+            text: 'Coup repris — cherche une meilleure idée !',
+            triggeredBy: 'player-move',
+          },
+          coachingLoading: false,
+          inCheck: chess.inCheck(),
+          gameResult: null,
+        });
+      },
     };
   }),
 );
