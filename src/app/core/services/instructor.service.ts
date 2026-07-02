@@ -98,6 +98,10 @@ export interface CoachRequest {
   readonly type: CoachingType;
   readonly trigger: CoachingTrigger;
   readonly instruction: string; // the user-turn instruction for Claude
+  /** Move the message talks about (UCI) — lets the local fallback be specific. */
+  readonly moveUci?: string;
+  /** Position BEFORE `moveUci` was played (the fen to replay it from). */
+  readonly fenBefore?: string;
 }
 
 const DIFFICULTY_LABEL: Readonly<Record<Difficulty, string>> = {
@@ -106,8 +110,98 @@ const DIFFICULTY_LABEL: Readonly<Record<Difficulty, string>> = {
   medium: 'intermédiaire débutant',
 };
 
-/** Built-in French coaching used when no API key is configured or the call fails. */
-function localCoaching(req: CoachRequest): string {
+const PIECE_FR: Readonly<Record<string, string>> = {
+  p: 'pion',
+  n: 'cavalier',
+  b: 'fou',
+  r: 'tour',
+  q: 'dame',
+  k: 'roi',
+};
+
+const CENTER_SQUARES = new Set(['d4', 'e4', 'd5', 'e5']);
+
+interface MoveFacts {
+  readonly san: string;
+  readonly piece: string; // French piece name
+  readonly from: string;
+  readonly to: string;
+  readonly captured: string | null; // French piece name
+  readonly isCheckmate: boolean;
+  readonly isCheck: boolean;
+  readonly isCastle: boolean;
+  readonly isPromotion: boolean;
+  readonly toCenter: boolean;
+  readonly develops: boolean; // minor piece leaving its starting rank
+}
+
+/** Replay `uci` from `fenBefore` and extract teachable facts (null if invalid). */
+export function moveFacts(fenBefore: string, uci: string): MoveFacts | null {
+  try {
+    const chess = new Chess(fenBefore);
+    const move = chess.move({
+      from: uci.slice(0, 2),
+      to: uci.slice(2, 4),
+      promotion: uci.length > 4 ? uci[4] : 'q',
+    });
+    const backRank = move.color === 'w' ? '1' : '8';
+    return {
+      san: move.san,
+      piece: PIECE_FR[move.piece] ?? 'pièce',
+      from: move.from,
+      to: move.to,
+      captured: move.captured ? (PIECE_FR[move.captured] ?? null) : null,
+      isCheckmate: chess.isCheckmate(),
+      isCheck: chess.inCheck(),
+      isCastle: move.san.startsWith('O-O'),
+      isPromotion: !!move.promotion,
+      toCenter: CENTER_SQUARES.has(move.to),
+      develops: (move.piece === 'n' || move.piece === 'b') && move.from[1] === backRank,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/** The strongest teachable reason for a move, phrased for the given voice. */
+function moveReason(f: MoveFacts, voice: 'player' | 'bot'): string {
+  const your = voice === 'player' ? 'ton' : 'mon';
+  if (f.isCheckmate) return "c'est échec et mat !";
+  if (f.isCastle) return `${your} roi se met à l'abri et ${voice === 'player' ? 'ta' : 'ma'} tour s'active.`;
+  if (f.isPromotion) return `${your} pion se transforme en dame — un énorme gain de force.`;
+  if (f.captured) return `ça capture ${f.captured === 'dame' || f.captured === 'tour' ? 'la' : 'le'} ${f.captured} adverse.`;
+  if (f.isCheck)
+    return voice === 'player'
+      ? "ça donne échec et force l'adversaire à réagir."
+      : 'ça donne échec et te force à réagir.';
+  if (f.develops) return `ça développe une pièce vers une case active.`;
+  if (f.toCenter) return `ça prend le contrôle du centre.`;
+  return `ça améliore la position ${voice === 'player' ? 'de tes pièces' : 'de mes pièces'}.`;
+}
+
+/**
+ * Built-in French coaching used when no API key is configured or the call
+ * fails. When the request carries the move (uci + fen before), the message
+ * is derived from the actual position — piece, capture, check, castling,
+ * centre, development — instead of a canned sentence.
+ */
+export function localCoaching(req: CoachRequest): string {
+  const facts = req.moveUci && req.fenBefore ? moveFacts(req.fenBefore, req.moveUci) : null;
+
+  if (facts) {
+    switch (req.type) {
+      case 'tip':
+        // Hint: name the exact move and the strongest reason to play it.
+        return `Joue ${facts.piece} ${facts.from} → ${facts.to} (${facts.san}) : ${moveReason(facts, 'player')}`;
+      case 'praise':
+        return `Bon coup ! ${facts.san} : ${moveReason(facts, 'player')}`;
+      case 'warning':
+        return `Attention après ${facts.san} — vérifie que tes pièces restent défendues.`;
+      case 'explanation':
+        return `Je joue ${facts.san} (${facts.piece} en ${facts.to}) : ${moveReason(facts, 'bot')}`;
+    }
+  }
+
   switch (req.type) {
     case 'praise':
       return 'Bon coup ! Tu développes ton jeu dans le bon sens.';

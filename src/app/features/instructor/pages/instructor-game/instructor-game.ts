@@ -51,6 +51,10 @@ export class InstructorGame {
     void this.store.requestHint();
   }
 
+  protected onDismissHint(): void {
+    this.store.clearHint();
+  }
+
   protected onNewGame(): void {
     this.store.newGame(this.difficulty(), 'white', this.bot());
   }

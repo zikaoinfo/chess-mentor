@@ -54,3 +54,19 @@
     animation: none;
   }
 }
+
+.overlay__close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--cm-text-muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  cursor: pointer;
+  padding: 0 var(--cm-space-1);
+  align-self: flex-start;
+
+  &:hover {
+    color: var(--cm-text);
+  }
+}

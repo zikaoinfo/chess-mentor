@@ -1,4 +1,10 @@
-import { applyPersonaStyle, fallbackMove, skillForDifficulty } from './instructor.service';
+import {
+  applyPersonaStyle,
+  CoachRequest,
+  fallbackMove,
+  localCoaching,
+  skillForDifficulty,
+} from './instructor.service';
 import { BOT_PRESETS, BotPersona } from '../models/bot.model';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
@@ -66,5 +72,52 @@ describe('fallbackMove', () => {
 
   it('returns an empty string when there are no legal moves', () => {
     expect(fallbackMove(MATE_FEN)).toBe('');
+  });
+});
+
+describe('localCoaching (fallback sans clé API)', () => {
+  const req = (over: Partial<CoachRequest>): CoachRequest => ({
+    difficulty: 'beginner',
+    fen: START_FEN,
+    moveHistory: '',
+    type: 'tip',
+    trigger: 'hint-request',
+    instruction: '',
+    ...over,
+  });
+
+  it('décrit le coup exact de l’indice (pièce + cases + raison)', () => {
+    const text = localCoaching(req({ moveUci: 'g1f3', fenBefore: START_FEN }));
+    expect(text).toContain('cavalier');
+    expect(text).toContain('g1 → f3');
+    expect(text).toContain('développe');
+  });
+
+  it('varie selon le coup suggéré (capture ≠ développement)', () => {
+    const capFen = 'rnbqkbnr/ppp1pppp/8/3p4/4P3/8/PPPP1PPP/RNBQKBNR w KQkq - 0 2';
+    const capture = localCoaching(req({ moveUci: 'e4d5', fenBefore: capFen }));
+    const develop = localCoaching(req({ moveUci: 'g1f3', fenBefore: capFen }));
+    expect(capture).toContain('capture');
+    expect(capture).not.toEqual(develop);
+  });
+
+  it('mentionne l’échec et mat quand le coup mate', () => {
+    // Mat du berger : Dh5xf7#
+    const fen = 'r1bqkbnr/pppp1ppp/2n5/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 4 4';
+    const text = localCoaching(req({ moveUci: 'h5f7', fenBefore: fen }));
+    expect(text).toContain('mat');
+  });
+
+  it('parle à la première personne pour une explication du bot', () => {
+    const text = localCoaching(req({ type: 'explanation', moveUci: 'e2e4', fenBefore: START_FEN }));
+    expect(text).toContain('Je joue');
+  });
+
+  it('retombe sur la phrase générique sans contexte de coup', () => {
+    expect(localCoaching(req({}))).toContain('Pense à');
+  });
+
+  it('retombe sur la phrase générique si le coup est illégal', () => {
+    expect(localCoaching(req({ moveUci: 'e2e5', fenBefore: START_FEN }))).toContain('Pense à');
   });
 });
