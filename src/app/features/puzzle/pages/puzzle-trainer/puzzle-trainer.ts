@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@a
 import { PuzzleService } from '../../../../core/services/puzzle.service';
 import { PuzzleStore } from '../../../../core/store/puzzle.store';
 import { PuzzleTheme } from '../../../../core/models/puzzle.model';
+import { HintState } from '../../../../core/models/instructor.model';
 import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { PuzzleCard } from '../../components/puzzle-card/puzzle-card';
 import { FeedbackPanel } from '../../components/feedback-panel/feedback-panel';
@@ -35,6 +36,13 @@ export class PuzzleTrainer {
 
   protected readonly themes = THEMES;
   protected readonly interactive = computed(() => this.game().status === 'playing');
+  protected readonly hintUsed = this.store.hintUsed;
+
+  /** Board hint: reveal only the origin square of the expected move. */
+  protected readonly boardHint = computed<HintState | null>(() => {
+    const square = this.store.hintSquare();
+    return square ? { from: square, reason: '' } : null;
+  });
 
   private lastLoadedId: string | null = null;
 
@@ -58,6 +66,14 @@ export class PuzzleTrainer {
 
   protected onNext(): void {
     this.service.next();
+  }
+
+  protected onHint(): void {
+    this.store.requestHint();
+  }
+
+  protected onShowSolution(): void {
+    void this.store.showSolution();
   }
 
   protected selectTheme(theme: PuzzleTheme): void {

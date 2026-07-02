@@ -26,33 +26,38 @@ button {
   font-family: inherit;
 }
 
+// Ghost button (spec: .btn-ghost)
 .cm-btn {
   appearance: none;
+  background: transparent;
+  color: var(--cm-text-muted);
   border: 1px solid var(--cm-border);
-  background: var(--cm-surface-2);
-  color: var(--cm-text);
-  padding: var(--cm-space-2) var(--cm-space-4);
   border-radius: var(--cm-radius-sm);
-  font-size: 0.95rem;
+  padding: 8px 16px;
+  font-size: 14px;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: border-color 0.15s ease, color 0.15s ease, filter 0.15s ease;
 
-  &:hover {
-    background: var(--cm-border);
+  &:hover:not(:disabled) {
+    border-color: var(--cm-accent);
+    color: var(--cm-text);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }
 
+// Primary button (spec: .btn-primary)
 .cm-btn--primary {
-  background: var(--cm-accent-strong);
-  border-color: var(--cm-accent-strong);
+  background: var(--cm-accent);
+  border: none;
   color: #fff;
 
-  &:hover {
-    background: var(--cm-accent);
+  &:hover:not(:disabled) {
+    border-color: transparent;
+    color: #fff;
+    filter: brightness(1.1);
   }
 }

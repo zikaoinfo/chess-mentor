@@ -1,0 +1,11 @@
+<div class="history" #list role="log" aria-label="Historique des coups">
+  @for (row of rows(); track row.n) {
+    <div class="row">
+      <span class="num">{{ row.n }}.</span>
+      <span class="mv">{{ row.white?.san }}</span>
+      <span class="mv">{{ row.black?.san }}</span>
+    </div>
+  } @empty {
+    <p class="empty">Aucun coup joué pour l'instant.</p>
+  }
+</div>

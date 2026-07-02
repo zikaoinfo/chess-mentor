@@ -19,6 +19,7 @@ export class FeedbackPanel {
 
   protected readonly tone = computed<Tone>(() => {
     if (this.status() === 'solved') return 'good';
+    if (this.status() === 'solution-shown') return 'neutral';
     if (this.lastMoveCorrect() === false) return 'bad';
     if (this.lastMoveCorrect() === true) return 'good';
     return 'neutral';
@@ -37,6 +38,7 @@ export class FeedbackPanel {
 
   protected readonly message = computed(() => {
     if (this.status() === 'solved') return 'Puzzle résolu — bien joué !';
+    if (this.status() === 'solution-shown') return 'Voici la solution complète.';
     if (this.lastMoveCorrect() === false) return 'Pas le bon coup. Réessayez.';
     if (this.lastMoveCorrect() === true) return 'Bon coup ! Continuez la combinaison.';
     return 'À vous de jouer : trouvez le meilleur coup.';

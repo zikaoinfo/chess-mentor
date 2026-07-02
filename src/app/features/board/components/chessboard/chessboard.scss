@@ -118,6 +118,13 @@
   stroke: var(--cm-legal-on-dark);
 }
 
+// ─── Check ──────────────────────────────────────────────────────────────
+.check-square {
+  fill: var(--cm-check);
+  pointer-events: none;
+  animation: cm-fade var(--cm-anim) var(--cm-ease) both;
+}
+
 // ─── Coaching hint ──────────────────────────────────────────────────────
 .hint-square {
   pointer-events: none;
@@ -169,6 +176,7 @@
   .hint,
   .hint-square,
   .hint-arrow,
+  .check-square,
   .selection-ring,
   .selection-fill,
   .lastmove {

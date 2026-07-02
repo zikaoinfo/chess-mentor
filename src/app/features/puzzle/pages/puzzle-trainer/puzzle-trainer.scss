@@ -59,8 +59,14 @@
   gap: var(--cm-space-4);
 }
 
-.skip {
-  align-self: flex-start;
+.trainer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-2);
+}
+
+.trainer__actions .cm-btn {
+  flex: 1 1 auto;
 }
 
 .placeholder {

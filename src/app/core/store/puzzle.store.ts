@@ -7,12 +7,14 @@ import {
   withEntities,
 } from '@ngrx/signals/entities';
 import { type } from '@ngrx/signals';
+import { Chess } from 'chess.js';
 
 import { GameState } from '../models/game-state.model';
 import { LichessPuzzle, PuzzleAttempt } from '../models/puzzle.model';
 import { StorageService } from '../services/storage.service';
 import { SoundService } from '../services/sound.service';
-import { applySolverMove, setupPuzzle } from '../../features/board/utils/move-engine';
+import { applySolverMove } from '../../features/board/utils/move-engine';
+import { fenTurn, parseUci } from '../../features/board/utils/fen.utils';
 
 interface SessionState {
   readonly puzzle: LichessPuzzle | null;
@@ -27,6 +29,10 @@ interface SessionState {
   readonly lastMoveCorrect: boolean | null;
   /** Most recent move played on the board (UCI), highlighted for the solver. */
   readonly lastMove: string | null;
+  /** Origin square of the expected move, revealed by the hint button. */
+  readonly hintSquare: string | null;
+  /** One hint per puzzle. */
+  readonly hintUsed: boolean;
   readonly streak: number;
   readonly bestStreak: number;
 }
@@ -34,7 +40,7 @@ interface SessionState {
 const IDLE_GAME: GameState = {
   fen: 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1',
   orientation: 'white',
-  solutionIndex: 1,
+  solutionIndex: 0,
   status: 'idle',
 };
 
@@ -46,6 +52,8 @@ const initialState: SessionState = {
   failedCurrent: false,
   lastMoveCorrect: null,
   lastMove: null,
+  hintSquare: null,
+  hintUsed: false,
   streak: 0,
   bestStreak: 0,
 };
@@ -56,9 +64,15 @@ const attemptConfig = entityConfig({
   selectId: (a) => `${a.puzzleId}:${new Date(a.solvedAt).getTime()}`,
 });
 
+const delay = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
 /**
  * Global session store. Owns the puzzle currently being solved, the live
  * board state, the solver's streak, and the persisted attempt log (entities).
+ *
+ * Lichess API convention: the puzzle FEN is the position AFTER the opponent's
+ * blunder — the solver plays `solution[0]`, the opponent auto-replies with
+ * `solution[1]`, and so on.
  */
 export const PuzzleStore = signalStore(
   { providedIn: 'root' },
@@ -96,22 +110,24 @@ export const PuzzleStore = signalStore(
         patchState(store, setAllEntities(items, attemptConfig));
       },
 
-      /** Begin solving a freshly fetched puzzle. */
+      /** Begin solving a freshly fetched puzzle. The solver moves first. */
       loadPuzzle(puzzle: LichessPuzzle): void {
-        const setup = setupPuzzle(puzzle.fen, puzzle.solution);
         patchState(store, {
           puzzle,
           game: {
-            fen: setup.fen,
-            orientation: setup.orientation,
-            solutionIndex: setup.solutionIndex,
+            fen: puzzle.fen,
+            orientation: fenTurn(puzzle.fen) === 'w' ? 'white' : 'black',
+            solutionIndex: 0,
             status: 'playing',
           },
           attemptsOnCurrent: 0,
           startedAt: Date.now(),
           failedCurrent: false,
           lastMoveCorrect: null,
-          lastMove: puzzle.solution[0] ?? null,
+          // Highlight the opponent's blunder (last move of the game PGN).
+          lastMove: puzzle.lastMove,
+          hintSquare: null,
+          hintUsed: false,
         });
       },
 
@@ -142,6 +158,7 @@ export const PuzzleStore = signalStore(
             game: { ...game, fen: result.fen, solutionIndex: result.solutionIndex, status: 'solved' },
             lastMoveCorrect: true,
             lastMove: result.opponentMove ?? uci,
+            hintSquare: null,
             streak,
             bestStreak: Math.max(store.bestStreak(), streak),
           });
@@ -153,8 +170,57 @@ export const PuzzleStore = signalStore(
           game: { ...game, fen: result.fen, solutionIndex: result.solutionIndex },
           lastMoveCorrect: true,
           lastMove: result.opponentMove ?? uci,
+          hintSquare: null,
         });
         sound.move();
+      },
+
+      /** Reveal the origin square of the expected move. One hint per puzzle. */
+      requestHint(): void {
+        const puzzle = store.puzzle();
+        const game = store.game();
+        if (!puzzle || game.status !== 'playing' || store.hintUsed()) return;
+        const expected = puzzle.solution[game.solutionIndex];
+        if (!expected) return;
+        patchState(store, { hintSquare: expected.slice(0, 2), hintUsed: true });
+        sound.hint();
+      },
+
+      /**
+       * Forfeit the puzzle and replay the remaining solution moves on the
+       * board (700ms apart). Records the attempt as incorrect.
+       */
+      async showSolution(): Promise<void> {
+        const puzzle = store.puzzle();
+        const game = store.game();
+        if (!puzzle || game.status !== 'playing') return;
+
+        recordAttempt(false);
+        patchState(store, {
+          game: { ...game, status: 'solution-shown' },
+          failedCurrent: true,
+          streak: 0,
+          hintSquare: null,
+          lastMoveCorrect: null,
+        });
+
+        const chess = new Chess(game.fen);
+        for (let i = game.solutionIndex; i < puzzle.solution.length; i++) {
+          await delay(700);
+          // A new puzzle may have been loaded while we were replaying.
+          if (store.game().status !== 'solution-shown' || store.puzzle() !== puzzle) return;
+          const move = parseUci(puzzle.solution[i]);
+          try {
+            chess.move({ from: move.from, to: move.to, promotion: move.promotion ?? 'q' });
+          } catch {
+            return;
+          }
+          patchState(store, {
+            game: { ...store.game(), fen: chess.fen(), solutionIndex: i + 1 },
+            lastMove: puzzle.solution[i],
+          });
+          sound.move();
+        }
       },
     };
   }),

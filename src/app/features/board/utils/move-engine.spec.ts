@@ -1,4 +1,4 @@
-import { applySolverMove, fenAfterPly, legalTargets, setupPuzzle } from './move-engine';
+import { applySolverMove, legalTargets, replayPgn } from './move-engine';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -48,26 +48,23 @@ describe('move-engine', () => {
     });
   });
 
-  describe('setupPuzzle', () => {
-    it('auto-plays the opponent move and orients to the solver', () => {
-      const setup = setupPuzzle(START, ['e2e4', 'e7e5']);
-      expect(setup.solutionIndex).toBe(1);
-      expect(setup.orientation).toBe('black'); // black to move after 1.e4
-      expect(setup.fen).toContain(' b ');
-    });
-  });
-
-  describe('fenAfterPly', () => {
-    const pgn = '1. e4 e5 2. Nf3 Nc6';
-
-    it('returns the start position at ply 0', () => {
-      expect(fenAfterPly(pgn, 0)).toBe(START);
+  describe('replayPgn', () => {
+    it('replays numberless SAN movetext (Lichess API format) to the final position', () => {
+      const { fen, lastUci } = replayPgn('e4 e5 Nf3');
+      expect(fen).toContain(' b '); // black to move after 2.Nf3
+      expect(lastUci).toBe('g1f3');
     });
 
-    it('replays up to the requested ply', () => {
-      const fen = fenAfterPly(pgn, 2);
-      expect(fen).toContain('4P3'); // white pawn on e4
-      expect(fen).toContain(' w '); // white to move after 1.e4 e5
+    it('tolerates numbered movetext and result markers', () => {
+      const { fen, lastUci } = replayPgn('1. e4 e5 2. Nf3 Nc6 *');
+      expect(fen).toContain(' w ');
+      expect(lastUci).toBe('b8c6');
+    });
+
+    it('returns the start position for an empty movetext', () => {
+      const { fen, lastUci } = replayPgn('');
+      expect(fen).toBe(START);
+      expect(lastUci).toBeNull();
     });
   });
 });

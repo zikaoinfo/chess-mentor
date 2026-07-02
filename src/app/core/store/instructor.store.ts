@@ -5,6 +5,7 @@ import { Chess } from 'chess.js';
 import {
   CoachingMessage,
   Difficulty,
+  GameResult,
   HintState,
   InstructorMove,
   InstructorPhase,
@@ -21,7 +22,13 @@ interface InstructorState {
   readonly moveHistory: readonly InstructorMove[];
   readonly hint: HintState | null;
   readonly coaching: CoachingMessage | null;
+  /** True while a Claude coaching request is in flight (shimmer in the panel). */
+  readonly coachingLoading: boolean;
   readonly playerColor: 'white' | 'black';
+  /** Set when the game ends (checkmate winner, or draw/stalemate). */
+  readonly gameResult: GameResult | null;
+  /** True when the side to move is in check. */
+  readonly inCheck: boolean;
 }
 
 const initialState: InstructorState = {
@@ -31,7 +38,10 @@ const initialState: InstructorState = {
   moveHistory: [],
   hint: null,
   coaching: null,
+  coachingLoading: false,
   playerColor: 'white',
+  gameResult: null,
+  inCheck: false,
 };
 
 function uciToMove(uci: string): { from: string; to: string; promotion?: string } {
@@ -40,6 +50,20 @@ function uciToMove(uci: string): { from: string; to: string; promotion?: string 
 
 function sanHistory(moves: readonly InstructorMove[]): string {
   return moves.map((m) => m.san).join(' ');
+}
+
+/** End-of-game verdict + check flag for the position held by `chess`. */
+function verdict(chess: Chess): { over: boolean; gameResult: GameResult | null; inCheck: boolean } {
+  const over = chess.isGameOver();
+  const gameResult: GameResult | null = !over
+    ? null
+    : chess.isCheckmate()
+      ? // The side to move is the one mated.
+        chess.turn() === 'w'
+        ? 'black-wins'
+        : 'white-wins'
+      : 'draw'; // stalemate, 50 moves, repetition, insufficient material
+  return { over, gameResult, inCheck: chess.inCheck() };
 }
 
 /**
@@ -85,17 +109,26 @@ export const InstructorStore = signalStore(
         move = null;
       }
       if (!move) {
-        patchState(store, { phase: store.phase() === 'bot-thinking' ? 'game-over' : store.phase() });
+        // Engine produced no playable move — settle the game from the position.
+        const end = verdict(chess);
+        patchState(store, {
+          phase: store.phase() === 'bot-thinking' ? 'game-over' : store.phase(),
+          gameResult: end.gameResult,
+          inCheck: end.inCheck,
+        });
         return;
       }
 
       const newFen = chess.fen();
-      const over = chess.isGameOver();
+      const { over, gameResult, inCheck } = verdict(chess);
       const botMove: InstructorMove = { uci: move.lan, san: move.san, by: 'bot' };
       patchState(store, {
         currentFen: newFen,
         moveHistory: [...store.moveHistory(), botMove],
         phase: over ? 'game-over' : 'player-turn',
+        gameResult,
+        inCheck,
+        coachingLoading: true,
       });
       moveSound(move, over);
 
@@ -110,6 +143,7 @@ export const InstructorStore = signalStore(
       });
       patchState(store, {
         coaching,
+        coachingLoading: false,
         moveHistory: store
           .moveHistory()
           .map((m, i, arr) => (i === arr.length - 1 && m.by === 'bot' ? { ...m, explanation: coaching.text } : m)),
@@ -127,7 +161,10 @@ export const InstructorStore = signalStore(
       });
       // Only surface if the bot hasn't already spoken about its reply.
       if (store.phase() === 'bot-thinking') {
-        patchState(store, { coaching });
+        patchState(store, { coaching, coachingLoading: false });
+      } else if (store.phase() === 'game-over') {
+        // Player's move ended the game — no bot reply will follow.
+        patchState(store, { coachingLoading: false });
       }
     }
 
@@ -161,13 +198,16 @@ export const InstructorStore = signalStore(
         if (!move) return false;
 
         const playerMove: InstructorMove = { uci: move.lan, san: move.san, by: 'player' };
-        const over = chess.isGameOver();
+        const { over, gameResult, inCheck } = verdict(chess);
         patchState(store, {
           currentFen: chess.fen(),
           moveHistory: [...store.moveHistory(), playerMove],
           hint: null,
           coaching: null,
+          coachingLoading: true,
           phase: over ? 'game-over' : 'bot-thinking',
+          gameResult,
+          inCheck,
         });
         moveSound(move, over);
 
@@ -188,6 +228,7 @@ export const InstructorStore = signalStore(
         const to = best.slice(2, 4);
         patchState(store, {
           hint: { from, to, reason: 'Regarde ce coup.', arrows: [{ from, to }] },
+          coachingLoading: true,
         });
         sound.hint();
 
@@ -202,6 +243,7 @@ export const InstructorStore = signalStore(
         const current = store.hint();
         patchState(store, {
           coaching,
+          coachingLoading: false,
           hint: current ? { ...current, reason: coaching.text } : current,
         });
       },

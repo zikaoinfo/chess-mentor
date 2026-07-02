@@ -5,7 +5,7 @@ export type PieceColor = 'w' | 'b';
 export type Orientation = 'white' | 'black';
 
 /** Lifecycle of the puzzle currently being solved. */
-export type PuzzleStatus = 'idle' | 'loading' | 'playing' | 'solved' | 'failed';
+export type PuzzleStatus = 'idle' | 'loading' | 'playing' | 'solved' | 'failed' | 'solution-shown';
 
 /**
  * Live state of the position the solver is interacting with.

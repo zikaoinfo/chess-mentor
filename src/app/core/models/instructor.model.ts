@@ -6,6 +6,9 @@
 /** Bot strength tiers (≈ 0–1200 Elo). */
 export type Difficulty = 'beginner' | 'easy' | 'medium';
 
+/** Outcome of a finished coached game. */
+export type GameResult = 'white-wins' | 'black-wins' | 'draw';
+
 /** Lifecycle of a coached game. */
 export type InstructorPhase =
   | 'idle'
@@ -28,12 +31,16 @@ export interface Arrow {
   readonly to: string; // 'e4'
 }
 
-/** A pending hint surfaced on the board + panel. */
+/**
+ * A pending hint surfaced on the board + panel. `to`/`arrows` are optional:
+ * the puzzle trainer only reveals the origin square, while the instructor
+ * shows the full move with an arrow.
+ */
 export interface HintState {
   readonly from: string; // origin square 'e2'
-  readonly to: string; // destination square 'e4'
+  readonly to?: string; // destination square 'e4'
   readonly reason: string; // short natural-language explanation
-  readonly arrows: readonly Arrow[]; // arrows to draw on the board
+  readonly arrows?: readonly Arrow[]; // arrows to draw on the board
 }
 
 export type CoachingType = 'praise' | 'warning' | 'tip' | 'explanation';

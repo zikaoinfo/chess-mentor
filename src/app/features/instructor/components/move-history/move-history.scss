@@ -1,0 +1,31 @@
+.history {
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  background: var(--cm-surface);
+  padding: var(--cm-space-2) var(--cm-space-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 2.2rem 1fr 1fr;
+  gap: var(--cm-space-2);
+  padding: 2px 0;
+  font-size: 0.85rem;
+}
+
+.num {
+  color: var(--cm-text-muted);
+}
+
+.mv {
+  color: var(--cm-text);
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--cm-text-muted);
+}

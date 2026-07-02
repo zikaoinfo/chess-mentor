@@ -34,6 +34,7 @@
           [orientation]="game().orientation"
           [interactive]="interactive()"
           [lastMove]="lastMove()"
+          [hintState]="boardHint()"
           (move)="onMove($event)"
         />
       }
@@ -48,7 +49,20 @@
           (next)="onNext()"
         />
         @if (game().status === 'playing') {
-          <button type="button" class="cm-btn skip" (click)="onNext()">Passer ce puzzle</button>
+          <div class="trainer__actions">
+            <button
+              type="button"
+              class="cm-btn"
+              [disabled]="hintUsed()"
+              (click)="onHint()"
+            >
+              Indice
+            </button>
+            <button type="button" class="cm-btn" (click)="onShowSolution()">
+              Voir la solution
+            </button>
+            <button type="button" class="cm-btn skip" (click)="onNext()">Passer ce puzzle</button>
+          </div>
         }
       }
     </aside>
