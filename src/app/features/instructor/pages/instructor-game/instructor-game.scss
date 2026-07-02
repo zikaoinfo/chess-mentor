@@ -25,11 +25,14 @@
 
 @media (max-width: 768px) {
   .game {
-    grid-template-columns: 1fr;
+    // minmax(0, …): a bare 1fr is minmax(auto, 1fr), whose min-content floor
+    // lets wide side-panel rows push the page beyond the phone viewport.
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .game__side {
     width: 100%;
+    min-width: 0;
     max-width: min(100%, 92vmin, 82vh, 1200px);
     margin-inline: auto;
   }

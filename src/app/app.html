@@ -28,6 +28,50 @@
   </nav>
 </header>
 
+@if (!isOnline()) {
+  <p class="app-banner app-banner--offline" role="status">
+    📡 Mode hors-ligne — nouveaux puzzles indisponibles. Analyse et parties locales OK.
+  </p>
+}
+
+@if (updateReady()) {
+  <div class="app-banner app-banner--update" role="status">
+    <span>Nouvelle version disponible.</span>
+    <button type="button" class="cm-btn cm-btn--primary" (click)="reloadForUpdate()">
+      Recharger
+    </button>
+  </div>
+}
+
+@if (canInstall() && !installDismissed()) {
+  <div class="app-banner app-banner--install" role="status">
+    <span>Installe ChessMentor sur ton écran d'accueil.</span>
+    <button type="button" class="cm-btn cm-btn--primary" (click)="installApp()">
+      Installer l'app
+    </button>
+    <button
+      type="button"
+      class="app-banner__close"
+      (click)="dismissInstall()"
+      aria-label="Ne plus proposer l'installation"
+    >
+      ✕
+    </button>
+  </div>
+} @else if (showIosHint() && !installDismissed()) {
+  <div class="app-banner app-banner--install" role="status">
+    <span>Sur iPhone : <strong>Partager → Sur l'écran d'accueil</strong> pour installer l'app.</span>
+    <button
+      type="button"
+      class="app-banner__close"
+      (click)="dismissInstall()"
+      aria-label="Masquer l'astuce d'installation"
+    >
+      ✕
+    </button>
+  </div>
+}
+
 <main class="app-main">
   <router-outlet />
 </main>

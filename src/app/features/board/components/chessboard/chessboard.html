@@ -1,9 +1,14 @@
 <div class="cm-board-wrap">
   <svg
+    #boardSvg
     class="cm-board-svg"
+    [class.cm-board-svg--dragging]="dragPiece()"
     viewBox="0 0 100 100"
     role="grid"
     [attr.aria-label]="'Échiquier, position ' + fen()"
+    (pointermove)="onPointerMove($event)"
+    (pointerup)="onPointerUp($event)"
+    (pointercancel)="onPointerCancel()"
   >
     <!--
       Gradient stops & filter flood colours are SVG presentation attributes,
@@ -53,7 +58,7 @@
         class="square"
         [class.square--interactive]="active()"
         [class.square--selected]="isSelected(sq.name)"
-        (click)="onSquare(sq)"
+        (pointerdown)="onPointerDown($event, sq)"
         [attr.role]="'gridcell'"
         [attr.aria-label]="sq.name"
         [attr.tabindex]="active() ? 0 : -1"
@@ -142,11 +147,23 @@
             class="piece"
             [class.piece--white]="sq.piece.color === 'w'"
             [class.piece--black]="sq.piece.color === 'b'"
+            [class.piece--ghost]="isDragSource(sq.name)"
             [attr.x]="(i % 8) * 12.5 + 6.25"
             [attr.y]="(i - (i % 8)) / 8 * 12.5 + 6.25"
             text-anchor="middle"
             dominant-baseline="central"
           >{{ glyph(sq.piece) }}</text>
+        }
+
+        @if (isDropTarget(sq.name)) {
+          <rect
+            class="drop-target"
+            [attr.x]="(i % 8) * 12.5 + 0.6"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 0.6"
+            width="11.3"
+            height="11.3"
+            rx="1.6"
+          />
         }
 
         @if (isLegal(sq.name)) {
@@ -191,6 +208,19 @@
         [attr.y2]="arrow.y2"
         marker-end="url(#cm-hint-arrowhead)"
       />
+    }
+
+    <!-- Piece following the pointer during a drag — drawn last, above all. -->
+    @if (dragPiece(); as d) {
+      <text
+        class="piece piece--drag"
+        [class.piece--white]="d.piece.color === 'w'"
+        [class.piece--black]="d.piece.color === 'b'"
+        [attr.x]="d.x"
+        [attr.y]="d.y"
+        text-anchor="middle"
+        dominant-baseline="central"
+      >{{ glyph(d.piece) }}</text>
     }
   </svg>
 </div>

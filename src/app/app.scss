@@ -1,6 +1,9 @@
 :host {
   display: block;
+  // 100vh over-measures on mobile while the URL bar is visible; dvh tracks
+  // the real dynamic viewport. Keep vh as fallback for older engines.
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .app-header {
@@ -9,6 +12,10 @@
   justify-content: space-between;
   gap: var(--cm-space-4);
   padding: var(--cm-space-4) var(--cm-space-6);
+  // Notches & system bars (viewport-fit=cover): keep the chrome tappable.
+  padding-top: calc(var(--cm-space-4) + env(safe-area-inset-top));
+  padding-left: calc(var(--cm-space-6) + env(safe-area-inset-left));
+  padding-right: calc(var(--cm-space-6) + env(safe-area-inset-right));
   border-bottom: 1px solid var(--cm-border);
   background: var(--cm-surface);
 }
@@ -69,6 +76,45 @@
   border-bottom-color: var(--cm-accent);
 }
 
+// ─── PWA banners (offline / update / install) ────────────────────────────
+.app-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--cm-space-3);
+  margin: 0;
+  padding: var(--cm-space-2) var(--cm-space-4);
+  padding-left: calc(var(--cm-space-4) + env(safe-area-inset-left));
+  padding-right: calc(var(--cm-space-4) + env(safe-area-inset-right));
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--cm-border);
+  background: var(--cm-surface-2);
+  color: var(--cm-text);
+}
+
+.app-banner--offline {
+  color: var(--cm-text-muted);
+}
+
+.app-banner--update {
+  border-bottom-color: var(--cm-accent);
+}
+
+.app-banner__close {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: var(--cm-text-muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: var(--cm-space-1) var(--cm-space-2);
+
+  &:hover {
+    color: var(--cm-text);
+  }
+}
+
 .app-main {
   // The column must be wide enough that the *board* (capped by viewport
   // height — see chessboard.scss :host), not this container, is the limiter.
@@ -92,15 +138,53 @@
   }
 }
 
-// Give the board more room on phones: trim chrome and tighten padding.
-@media (max-width: 560px) {
+// Phones & small tablets: brand on top, nav as a swipeable single row with
+// thumb-sized targets — never a 3-line stack, never horizontal page scroll.
+@media (max-width: 768px) {
   .app-header {
     flex-wrap: wrap;
     gap: var(--cm-space-2);
     padding: var(--cm-space-3) var(--cm-space-4);
+    padding-top: calc(var(--cm-space-3) + env(safe-area-inset-top));
+    padding-left: calc(var(--cm-space-4) + env(safe-area-inset-left));
+    padding-right: calc(var(--cm-space-4) + env(safe-area-inset-right));
   }
 
+  .app-nav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    gap: var(--cm-space-3);
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .app-nav a {
+    flex: 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: var(--cm-space-1) var(--cm-space-2);
+  }
+
+  .sound-toggle {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 auto;
+    font-size: 1.1rem;
+  }
+}
+
+// Give the board more room on phones: tighten content padding.
+@media (max-width: 560px) {
   .app-main {
     padding: var(--cm-space-4) var(--cm-space-3);
+    padding-left: calc(var(--cm-space-3) + env(safe-area-inset-left));
+    padding-right: calc(var(--cm-space-3) + env(safe-area-inset-right));
+    padding-bottom: calc(var(--cm-space-4) + env(safe-area-inset-bottom));
   }
 }

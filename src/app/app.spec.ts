@@ -1,12 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
+import { provideServiceWorker } from '@angular/service-worker';
 import { App } from './app';
 
 describe('App', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
-      providers: [provideRouter([])],
+      // Service worker disabled: provides SwUpdate for PwaUpdateService
+      // without registering anything in the test environment.
+      providers: [provideRouter([]), provideServiceWorker('ngsw-worker.js', { enabled: false })],
     }).compileComponents();
   });
 

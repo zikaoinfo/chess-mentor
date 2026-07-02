@@ -58,6 +58,28 @@
   stroke-width: 0.16;
 }
 
+// Origin square keeps a faint ghost while its piece follows the pointer.
+.piece--ghost {
+  opacity: 0.25;
+}
+
+// The dragged piece — slightly enlarged so the finger doesn't swallow it.
+.piece--drag {
+  font-size: 9.6px;
+}
+
+// Outline of the square the drag would drop on.
+.drop-target {
+  fill: none;
+  stroke: var(--cm-select-ring);
+  stroke-width: 0.7;
+  pointer-events: none;
+}
+
+.cm-board-svg--dragging {
+  cursor: grabbing;
+}
+
 // ─── Coordinates ────────────────────────────────────────────────────────
 .coord {
   font-family: var(--cm-font);
