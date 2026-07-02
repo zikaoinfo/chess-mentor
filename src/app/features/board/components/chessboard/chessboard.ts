@@ -80,10 +80,10 @@ export class Chessboard {
     return { x: col * 12.5 + 6.25, y: row * 12.5 + 6.25 };
   }
 
-  /** Geometry of the hint arrow, or null when no hint is active. */
+  /** Geometry of the hint arrow, or null when no hint (or no target) is set. */
   protected readonly hintArrow = computed<{ x1: number; y1: number; x2: number; y2: number } | null>(() => {
     const hint = this.hintState();
-    if (!hint) return null;
+    if (!hint?.to) return null;
     const a = this.squareCenter(hint.from);
     const b = this.squareCenter(hint.to);
     return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };

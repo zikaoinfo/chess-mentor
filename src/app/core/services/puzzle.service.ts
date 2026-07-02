@@ -2,16 +2,23 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { httpResource } from '@angular/common/http';
 import { LICHESS_API_URL } from '../tokens/api.tokens';
 import { LichessApiResponse, LichessPuzzle, PuzzleTheme } from '../models/puzzle.model';
-import { fenAfterPly } from '../../features/board/utils/move-engine';
+import { replayPgn } from '../../features/board/utils/move-engine';
 
-/** Normalise a raw Lichess response into our domain model. */
+/**
+ * Normalise a raw Lichess response into our domain model. The API's
+ * `game.pgn` ends exactly at the puzzle position (its last ply is the
+ * opponent's blunder) — replay it in full: the resulting FEN is the solver's
+ * position and `solution[0]` is the solver's first move.
+ */
 export function toPuzzle(res: LichessApiResponse): LichessPuzzle {
+  const { fen, lastUci } = replayPgn(res.game.pgn);
   return {
     id: res.puzzle.id,
     rating: res.puzzle.rating,
     themes: res.puzzle.themes,
     solution: res.puzzle.solution,
-    fen: fenAfterPly(res.game.pgn, res.puzzle.initialPly),
+    fen,
+    lastMove: lastUci,
   };
 }
 

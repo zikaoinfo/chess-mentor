@@ -1,5 +1,5 @@
 import { Chess } from 'chess.js';
-import { MoveResult, Orientation } from '../../../core/models/game-state.model';
+import { MoveResult } from '../../../core/models/game-state.model';
 import { parseUci } from './fen.utils';
 
 /**
@@ -26,11 +26,10 @@ function toUci(move: { from: string; to: string; promotion?: string }): string {
 /**
  * Apply a solver's candidate move against the puzzle solution.
  *
- * Convention (matches Lichess): the puzzle FEN is the position before the
- * opponent's setup move; `solution[0]` is that opponent move and is auto-played
- * before the solver starts. The solver then plays the odd indices, with even
- * indices auto-played as replies. `solutionIndex` is the index the solver is
- * expected to play now.
+ * Convention (Lichess API): the puzzle FEN is the position AFTER the
+ * opponent's blunder — the solver moves first. The solver plays the even
+ * indices of `solution`; odd indices are auto-played opponent replies.
+ * `solutionIndex` is the index the solver is expected to play now.
  */
 export function applySolverMove(
   fen: string,
@@ -80,41 +79,22 @@ export function applySolverMove(
 }
 
 /**
- * Prepare a puzzle for solving: auto-play the opponent's setup move
- * (`solution[0]`) and report the position the solver faces, the orientation
- * (solver's colour at the bottom) and the index of the solver's first move.
+ * Replay a full game movetext (as served by the Lichess API: SAN tokens,
+ * with or without move numbers) and return the final position plus the last
+ * move in UCI. The API's `game.pgn` ends exactly at the puzzle position, so
+ * this yields the FEN the solver plays from and the opponent's blunder to
+ * highlight.
  */
-export function setupPuzzle(
-  fen: string,
-  solution: readonly string[],
-): { fen: string; orientation: Orientation; solutionIndex: number } {
-  const chess = new Chess(fen);
-  if (solution.length > 0) {
-    const first = parseUci(solution[0]);
-    try {
-      chess.move({ from: first.from, to: first.to, promotion: first.promotion ?? 'q' });
-    } catch {
-      // Leave the position untouched if the setup move is unplayable.
-    }
+export function replayPgn(pgn: string): { fen: string; lastUci: string | null } {
+  const chess = new Chess();
+  let lastUci: string | null = null;
+  for (const token of pgn.trim().split(/\s+/)) {
+    // Skip empty tokens, move numbers ("12." / "12..."), and results.
+    if (!token || /^\d+\.+$/.test(token) || /^(1-0|0-1|1\/2-1\/2|\*)$/.test(token)) continue;
+    const san = token.replace(/^\d+\.+/, '');
+    if (!san) continue;
+    const move = chess.move(san);
+    lastUci = toUci(move);
   }
-  const orientation: Orientation = chess.turn() === 'w' ? 'white' : 'black';
-  return { fen: chess.fen(), orientation, solutionIndex: 1 };
-}
-
-/**
- * Reconstruct the FEN of a puzzle position by replaying a game PGN up to a
- * given ply. Used to normalise the Lichess API response, which ships a PGN +
- * `initialPly` rather than a FEN.
- */
-export function fenAfterPly(pgn: string, ply: number): string {
-  const full = new Chess();
-  full.loadPgn(pgn);
-  const history = full.history();
-
-  const replay = new Chess();
-  const limit = Math.max(0, Math.min(ply, history.length));
-  for (let i = 0; i < limit; i++) {
-    replay.move(history[i]);
-  }
-  return replay.fen();
+  return { fen: chess.fen(), lastUci };
 }

@@ -2,7 +2,7 @@
   <span class="feedback__icon" aria-hidden="true">{{ icon() }}</span>
   <p class="feedback__msg">{{ message() }}</p>
 
-  @if (status() === 'solved') {
+  @if (status() === 'solved' || status() === 'solution-shown') {
     <button type="button" class="cm-btn cm-btn--primary" (click)="next.emit()">
       Puzzle suivant →
     </button>

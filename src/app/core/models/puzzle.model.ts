@@ -6,10 +6,16 @@ export interface LichessPuzzle {
   readonly id: string;
   readonly rating: number;
   readonly themes: readonly string[];
-  /** Moves in UCI notation, e.g. `'e2e4'`. Index 0 is the opponent's setup move. */
+  /**
+   * Moves in UCI notation, e.g. `'e2e4'`. API convention: index 0 is the
+   * SOLVER's first move (the position already includes the opponent's
+   * blunder); odd indices are the opponent's scripted replies.
+   */
   readonly solution: readonly string[];
   /** Position the solver starts from, in Forsyth–Edwards Notation. */
   readonly fen: string;
+  /** Last move of the game PGN (the opponent's blunder), UCI — for highlighting. */
+  readonly lastMove: string | null;
 }
 
 /** A recorded attempt at a puzzle — persisted for progression stats. */
@@ -23,8 +29,9 @@ export interface PuzzleAttempt {
 
 /**
  * Raw shape returned by `GET https://lichess.org/api/puzzle/next`.
- * The API does not hand back a FEN directly — the position is reconstructed
- * by replaying `game.pgn` up to `puzzle.initialPly` (see `PuzzleService`).
+ * The API does not hand back a FEN directly — the puzzle position is the one
+ * reached after replaying the WHOLE `game.pgn` (whose last ply is
+ * `puzzle.initialPly`, 0-indexed). The solver moves first from there.
  */
 export interface LichessApiResponse {
   readonly game: {
