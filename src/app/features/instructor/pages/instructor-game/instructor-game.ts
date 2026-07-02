@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { InstructorStore } from '../../../../core/store/instructor.store';
 import { Difficulty } from '../../../../core/models/instructor.model';
 import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { InstructorPanel } from '../../components/instructor-panel/instructor-panel';
 import { HintOverlay } from '../../components/hint-overlay/hint-overlay';
+import { fenTurn, kingSquare } from '../../../board/utils/fen.utils';
 
 /** "Play the bot" page: board + coaching panel, driven by the InstructorStore. */
 @Component({
@@ -25,6 +26,16 @@ export class InstructorGame {
   protected readonly lastMove = this.store.lastMove;
   protected readonly isPlayerTurn = this.store.isPlayerTurn;
   protected readonly isThinking = this.store.isThinking;
+  protected readonly gameResult = this.store.gameResult;
+  protected readonly moveHistory = this.store.moveHistory;
+  protected readonly coachingLoading = this.store.coachingLoading;
+
+  /** Square of the checked king (the side to move), or null. */
+  protected readonly checkSquare = computed(() => {
+    if (!this.store.inCheck()) return null;
+    const fen = this.fen();
+    return kingSquare(fen, fenTurn(fen));
+  });
 
   constructor() {
     this.store.newGame('beginner');

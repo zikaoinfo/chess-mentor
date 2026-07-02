@@ -6,6 +6,9 @@
 /** Bot strength tiers (≈ 0–1200 Elo). */
 export type Difficulty = 'beginner' | 'easy' | 'medium';
 
+/** Outcome of a finished coached game. */
+export type GameResult = 'white-wins' | 'black-wins' | 'draw';
+
 /** Lifecycle of a coached game. */
 export type InstructorPhase =
   | 'idle'

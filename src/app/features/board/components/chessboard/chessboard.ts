@@ -42,6 +42,8 @@ export class Chessboard {
   readonly hintState = input<HintState | null>(null);
   /** When true the board is locked while the bot is thinking. */
   readonly lockedForBot = input<boolean>(false);
+  /** Square of the king currently in check, highlighted in red. */
+  readonly checkSquare = input<string | null>(null);
 
   readonly move = output<string>();
 

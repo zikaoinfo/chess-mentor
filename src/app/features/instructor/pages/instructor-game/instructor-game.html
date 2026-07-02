@@ -7,6 +7,7 @@
       [lockedForBot]="isThinking()"
       [lastMove]="lastMove()"
       [hintState]="hint()"
+      [checkSquare]="checkSquare()"
       (move)="onMove($event)"
     />
     <app-hint-overlay [hint]="hint()" />
@@ -17,6 +18,9 @@
       [difficulty]="difficulty()"
       [phase]="phase()"
       [coaching]="coaching()"
+      [coachingLoading]="coachingLoading()"
+      [gameResult]="gameResult()"
+      [moves]="moveHistory()"
       (difficultyChange)="onDifficulty($event)"
       (hint)="onHint()"
       (newGame)="onNewGame()"

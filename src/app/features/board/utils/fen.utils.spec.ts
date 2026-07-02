@@ -1,4 +1,4 @@
-import { fenToBoard, fenTurn, isLightSquare, parseUci, squareName } from './fen.utils';
+import { fenToBoard, fenTurn, isLightSquare, kingSquare, parseUci, squareName } from './fen.utils';
 
 const START = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -41,6 +41,12 @@ describe('fen.utils', () => {
   it('fenTurn reads the side to move', () => {
     expect(fenTurn(START)).toBe('w');
     expect(fenTurn('4k3/8/8/8/8/8/8/4K3 b - - 0 1')).toBe('b');
+  });
+
+  it('kingSquare finds each king', () => {
+    expect(kingSquare(START, 'w')).toBe('e1');
+    expect(kingSquare(START, 'b')).toBe('e8');
+    expect(kingSquare('4k3/8/8/8/8/8/8/6K1 w - - 0 1', 'w')).toBe('g1');
   });
 
   it('parseUci splits source, target and promotion', () => {

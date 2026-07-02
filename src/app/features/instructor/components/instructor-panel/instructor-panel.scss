@@ -28,6 +28,17 @@
   color: #fff;
 }
 
+.banner {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+  padding: var(--cm-space-3) var(--cm-space-4);
+  border: 1px solid var(--cm-accent);
+  border-radius: var(--cm-radius);
+  background: var(--cm-accent-soft, var(--cm-surface));
+  font-weight: 700;
+}
+
 .turn {
   display: flex;
   align-items: center;

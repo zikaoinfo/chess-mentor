@@ -3,8 +3,11 @@ import {
   CoachingMessage,
   CoachingType,
   Difficulty,
+  GameResult,
+  InstructorMove,
   InstructorPhase,
 } from '../../../../core/models/instructor.model';
+import { MoveHistory } from '../move-history/move-history';
 
 interface DifficultyOption {
   readonly value: Difficulty;
@@ -18,10 +21,20 @@ const COACH_ICON: Readonly<Record<CoachingType, string>> = {
   explanation: '🤖',
 };
 
-/** Side panel: difficulty picker, turn indicator, coaching bubble, controls. */
+const RESULT_LABEL: Readonly<Record<GameResult, string>> = {
+  'white-wins': 'Blanc gagne',
+  'black-wins': 'Noir gagne',
+  draw: 'Nulle',
+};
+
+/**
+ * Side panel: difficulty picker, turn indicator, coaching bubble, game-over
+ * banner, controls and the move history.
+ */
 @Component({
   selector: 'app-instructor-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [MoveHistory],
   templateUrl: './instructor-panel.html',
   styleUrl: './instructor-panel.scss',
 })
@@ -29,6 +42,9 @@ export class InstructorPanel {
   readonly difficulty = input.required<Difficulty>();
   readonly phase = input.required<InstructorPhase>();
   readonly coaching = input<CoachingMessage | null>(null);
+  readonly coachingLoading = input<boolean>(false);
+  readonly gameResult = input<GameResult | null>(null);
+  readonly moves = input<readonly InstructorMove[]>([]);
 
   readonly difficultyChange = output<Difficulty>();
   readonly hint = output<void>();
@@ -42,6 +58,12 @@ export class InstructorPanel {
 
   protected readonly canHint = computed(() => this.phase() === 'player-turn');
   protected readonly thinking = computed(() => this.phase() === 'bot-thinking');
+  protected readonly gameOver = computed(() => this.phase() === 'game-over');
+
+  protected readonly resultLabel = computed(() => {
+    const result = this.gameResult();
+    return result ? RESULT_LABEL[result] : 'Partie terminée';
+  });
 
   protected readonly turnLabel = computed(() => {
     switch (this.phase()) {

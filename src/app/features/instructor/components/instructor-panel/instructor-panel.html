@@ -16,18 +16,27 @@
     </div>
   </div>
 
-  <div class="turn" [class.turn--thinking]="thinking()">
-    @if (thinking()) {
-      <span class="spinner" aria-hidden="true"></span>
-    }
-    <span class="turn__label">{{ turnLabel() }}</span>
-  </div>
+  @if (gameOver()) {
+    <div class="banner" role="status">
+      <span aria-hidden="true">🏁</span>
+      Partie terminée — {{ resultLabel() }}
+    </div>
+  } @else {
+    <div class="turn" [class.turn--thinking]="thinking()">
+      @if (thinking()) {
+        <span class="spinner" aria-hidden="true"></span>
+      }
+      <span class="turn__label">{{ turnLabel() }}</span>
+    </div>
+  }
 
   @if (coaching(); as c) {
     <div class="coach" [attr.data-type]="c.type" role="status" aria-live="polite">
       <span class="coach__icon" aria-hidden="true">{{ coachIcon(c.type) }}</span>
       <p class="coach__text">{{ c.text }}</p>
     </div>
+  } @else if (coachingLoading()) {
+    <div class="coach coach--loading" aria-hidden="true"></div>
   }
 
   <div class="actions">
@@ -38,4 +47,6 @@
       Nouvelle partie
     </button>
   </div>
+
+  <app-move-history [moves]="moves()" />
 </section>

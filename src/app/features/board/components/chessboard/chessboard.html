@@ -90,6 +90,16 @@
           />
         }
 
+        @if (sq.name === checkSquare()) {
+          <rect
+            class="check-square"
+            [attr.x]="(i % 8) * 12.5"
+            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            width="12.5"
+            height="12.5"
+          />
+        }
+
         @if (isHintFrom(sq.name)) {
           <rect
             class="hint-square hint-square--from"

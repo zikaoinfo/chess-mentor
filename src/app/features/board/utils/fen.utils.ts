@@ -91,6 +91,14 @@ export function fenTurn(fen: string): PieceColor {
   return field === 'b' ? 'b' : 'w';
 }
 
+/** Square of `color`'s king in `fen`, or null if absent (malformed FEN). */
+export function kingSquare(fen: string, color: PieceColor): string | null {
+  const square = fenToBoard(fen).find(
+    (sq) => sq.piece?.type === 'k' && sq.piece.color === color,
+  );
+  return square?.name ?? null;
+}
+
 /** Split a UCI move (`'e2e4'`, `'e7e8q'`) into its parts. */
 export function parseUci(uci: string): { from: string; to: string; promotion?: PieceType } {
   const promotion = uci.length > 4 ? (uci[4] as PieceType) : undefined;
