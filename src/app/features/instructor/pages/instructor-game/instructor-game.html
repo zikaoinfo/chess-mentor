@@ -1,7 +1,14 @@
 <section class="game">
   <h1 class="visually-hidden">Jouer contre le bot</h1>
   <div class="game__board">
-    <app-chessboard
+    <div class="board-col">
+      <app-capture-bar
+        [label]="botName()"
+        [pieces]="botCaptures()"
+        [capturedColor]="playerPieceColor()"
+        [advantage]="botAdvantage()"
+      />
+      <app-chessboard
       [fen]="fen()"
       [orientation]="playerColor()"
       [interactive]="isPlayerTurn()"
@@ -10,7 +17,14 @@
       [hintState]="hint()"
       [checkSquare]="checkSquare()"
       (move)="onMove($event)"
-    />
+      />
+      <app-capture-bar
+        label="Toi"
+        [pieces]="playerCaptures()"
+        [capturedColor]="botPieceColor()"
+        [advantage]="playerAdvantage()"
+      />
+    </div>
     <app-hint-overlay [hint]="hint()" (dismiss)="onDismissHint()" />
   </div>
 
@@ -24,6 +38,7 @@
       [moves]="moveHistory()"
       [selectedBot]="bot()"
       [playerColor]="playerColor()"
+      [lastGameId]="lastGameId()"
       (difficultyChange)="onDifficulty($event)"
       (botSelect)="onSelectBot($event)"
       (colorSelect)="onSelectColor($event)"
