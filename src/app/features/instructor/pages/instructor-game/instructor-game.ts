@@ -68,7 +68,12 @@ export class InstructorGame {
   });
 
   constructor() {
-    this.store.newGame('beginner');
+    // The store is app-wide but this page is recreated on every navigation:
+    // only start a fresh game when none exists yet, so switching tabs
+    // (Rush, Analyse…) and coming back never wipes the game in progress.
+    if (this.store.phase() === 'idle') {
+      this.store.newGame('beginner');
+    }
   }
 
   protected onMove(uci: string): void {
