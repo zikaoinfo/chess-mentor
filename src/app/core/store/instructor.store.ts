@@ -168,6 +168,8 @@ export const InstructorStore = signalStore(
         type: 'explanation',
         trigger: 'bot-move',
         instruction: `Tu joues contre un débutant. Tu (le bot) viens de jouer ${move.san}. Explique en une phrase simple pourquoi tu joues ce coup, sans donner de longue variante.`,
+        moveUci: move.lan,
+        fenBefore: fen,
       });
       patchState(store, {
         coaching,
@@ -178,7 +180,13 @@ export const InstructorStore = signalStore(
       });
     }
 
-    async function coachPlayerMove(san: string, fen: string, difficulty: Difficulty): Promise<void> {
+    async function coachPlayerMove(
+      san: string,
+      fen: string,
+      difficulty: Difficulty,
+      moveUci: string,
+      fenBefore: string,
+    ): Promise<void> {
       const coaching = await service.coach({
         difficulty,
         fen,
@@ -186,6 +194,8 @@ export const InstructorStore = signalStore(
         type: 'tip',
         trigger: 'player-move',
         instruction: `Le joueur vient de jouer ${san}. Évalue ce coup en une phrase (bon, acceptable, ou à éviter) sans dévoiler la suite de la partie.`,
+        moveUci,
+        fenBefore,
       });
       // Only surface if the bot hasn't already spoken about its reply.
       if (store.phase() === 'bot-thinking') {
@@ -224,7 +234,8 @@ export const InstructorStore = signalStore(
       playerMove(uci: string): boolean {
         if (store.phase() !== 'player-turn') return false;
 
-        const chess = new Chess(store.currentFen());
+        const fenBefore = store.currentFen();
+        const chess = new Chess(fenBefore);
         let move;
         try {
           move = chess.move(uciToMove(uci));
@@ -248,7 +259,7 @@ export const InstructorStore = signalStore(
         moveSound(move, over);
         if (over) persistGame();
 
-        void coachPlayerMove(move.san, chess.fen(), store.difficulty());
+        void coachPlayerMove(move.san, chess.fen(), store.difficulty(), move.lan, fenBefore);
         if (!over) applyBotMove();
         return true;
       },
@@ -276,6 +287,8 @@ export const InstructorStore = signalStore(
           type: 'tip',
           trigger: 'hint-request',
           instruction: `Le meilleur coup pour le joueur est d'aller de ${from} vers ${to}. Explique en une phrase simple pourquoi, sans donner d'autre coup.`,
+          moveUci: best,
+          fenBefore: fen,
         });
         const current = store.hint();
         patchState(store, {
@@ -283,6 +296,11 @@ export const InstructorStore = signalStore(
           coachingLoading: false,
           hint: current ? { ...current, reason: coaching.text } : current,
         });
+      },
+
+      /** Dismiss the floating hint card (board arrow included). */
+      clearHint(): void {
+        patchState(store, { hint: null });
       },
     };
   }),

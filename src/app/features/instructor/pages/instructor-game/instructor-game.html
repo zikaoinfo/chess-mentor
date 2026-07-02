@@ -10,7 +10,7 @@
       [checkSquare]="checkSquare()"
       (move)="onMove($event)"
     />
-    <app-hint-overlay [hint]="hint()" />
+    <app-hint-overlay [hint]="hint()" (dismiss)="onDismissHint()" />
   </div>
 
   <aside class="game__side">

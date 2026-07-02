@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { HintState } from '../../../../core/models/instructor.model';
 
 /**
@@ -17,6 +17,14 @@ import { HintState } from '../../../../core/models/instructor.model';
           <p class="overlay__reason">{{ h.reason }}</p>
           <span class="overlay__move">{{ h.from }} → {{ h.to }}</span>
         </div>
+        <button
+          type="button"
+          class="overlay__close"
+          (click)="dismiss.emit()"
+          aria-label="Fermer l'indice"
+        >
+          ✕
+        </button>
       </div>
     }
   `,
@@ -24,6 +32,9 @@ import { HintState } from '../../../../core/models/instructor.model';
 })
 export class HintOverlay {
   readonly hint = input<HintState | null>(null);
+
+  /** User closed the card (the board arrow clears with it). */
+  readonly dismiss = output<void>();
 
   protected readonly visible = computed(() => this.hint() !== null);
 }
