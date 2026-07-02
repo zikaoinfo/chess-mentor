@@ -69,29 +69,53 @@
   }
 }
 
+// Coaching bubble (spec: .coaching-bubble) — card background, accent left
+// border (recoloured per message type), shimmer while Claude is thinking.
 .coach {
   display: flex;
   align-items: flex-start;
   gap: var(--cm-space-3);
-  padding: var(--cm-space-3) var(--cm-space-4);
+  padding: 12px 14px;
   border-radius: var(--cm-radius);
-  border: 1px solid var(--cm-border);
-  background: var(--cm-surface);
+  border: none;
+  border-left: 3px solid var(--cm-accent);
+  background: var(--cm-surface-2);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--cm-text);
+  min-height: 60px;
 }
 
 .coach[data-type='praise'] {
-  border-color: var(--cm-success);
-  background: var(--cm-success-bg);
+  border-left-color: var(--cm-success);
 }
 
 .coach[data-type='warning'] {
-  border-color: var(--cm-warning);
-  background: rgba(214, 160, 74, 0.14);
+  border-left-color: var(--cm-warning);
 }
 
 .coach[data-type='tip'] {
-  border-color: var(--cm-accent);
-  background: rgba(111, 147, 240, 0.12);
+  border-left-color: var(--cm-hint);
+}
+
+.coach--loading {
+  background: linear-gradient(
+    90deg,
+    var(--cm-surface-2) 25%,
+    var(--cm-surface) 50%,
+    var(--cm-surface-2) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 .coach__icon {
@@ -116,5 +140,10 @@
 @media (prefers-reduced-motion: reduce) {
   .spinner {
     animation-duration: 1.6s;
+  }
+
+  .coach--loading {
+    animation: none;
+    background: var(--cm-surface-2);
   }
 }
