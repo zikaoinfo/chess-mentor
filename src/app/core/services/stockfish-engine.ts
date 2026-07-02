@@ -1,22 +1,35 @@
 /**
  * Minimal UCI driver for the vendored single-threaded Stockfish (runs inside a
  * Web Worker — never on the main thread). Not an Angular service; the
- * InstructorService owns the lifecycle. All failures resolve to `null` so the
- * caller can fall back gracefully.
+ * InstructorService owns the lifecycle. All failures resolve to a null result
+ * so callers can fall back gracefully.
  */
-export interface EngineLimit {
+export interface EngineGoOptions {
   /** Stockfish "Skill Level" (0–20). */
   readonly skill: number;
-  /** Search budget in ms (used for bot moves). */
+  /** Search budget in ms (bot moves). */
   readonly movetime?: number;
-  /** Fixed search depth (used for hints). Takes precedence over movetime. */
+  /** Fixed search depth (hints, analysis). Takes precedence over movetime. */
   readonly depth?: number;
+  /** UCI Contempt (-100..100) — used by bot personalities. */
+  readonly contempt?: number;
 }
+
+/** Result of a search. `cp`/`mate` are from the side-to-move perspective. */
+export interface EngineResult {
+  readonly uci: string | null;
+  readonly cp: number | null;
+  readonly mate: number | null;
+}
+
+const NULL_RESULT: EngineResult = { uci: null, cp: null, mate: null };
 
 export class StockfishEngine {
   private worker: Worker | null = null;
-  private pending: ((uci: string | null) => void) | null = null;
+  private pending: ((result: EngineResult) => void) | null = null;
   private failed = false;
+  private lastCp: number | null = null;
+  private lastMate: number | null = null;
 
   constructor(
     private readonly scriptUrl: string,
@@ -33,7 +46,7 @@ export class StockfishEngine {
       this.worker.addEventListener('message', (e: MessageEvent) =>
         this.onLine(typeof e.data === 'string' ? e.data : String(e.data)),
       );
-      this.worker.addEventListener('error', () => this.resolvePending(null));
+      this.worker.addEventListener('error', () => this.resolvePending(NULL_RESULT));
       this.worker.postMessage('uci');
       this.worker.postMessage('isready');
       return true;
@@ -45,37 +58,63 @@ export class StockfishEngine {
   }
 
   private onLine(line: string): void {
+    if (line.startsWith('info ')) {
+      const score = /\bscore (cp|mate) (-?\d+)/.exec(line);
+      if (score) {
+        if (score[1] === 'cp') {
+          this.lastCp = Number(score[2]);
+          this.lastMate = null;
+        } else {
+          this.lastMate = Number(score[2]);
+          this.lastCp = null;
+        }
+      }
+      return;
+    }
     if (line.startsWith('bestmove')) {
       const move = line.split(/\s+/)[1];
-      this.resolvePending(move && move !== '(none)' ? move : null);
+      this.resolvePending({
+        uci: move && move !== '(none)' ? move : null,
+        cp: this.lastCp,
+        mate: this.lastMate,
+      });
     }
   }
 
-  private resolvePending(uci: string | null): void {
+  private resolvePending(result: EngineResult): void {
     const cb = this.pending;
     this.pending = null;
-    cb?.(uci);
+    cb?.(result);
   }
 
-  /** Ask the engine for the best move from `fen`. Resolves null on any failure. */
-  bestMove(fen: string, limit: EngineLimit): Promise<string | null> {
+  /** Search `fen`; resolves a null result on any failure — never rejects. */
+  go(fen: string, options: EngineGoOptions): Promise<EngineResult> {
     return new Promise((resolve) => {
       if (!this.ensureWorker() || !this.worker) {
-        resolve(null);
+        resolve(NULL_RESULT);
         return;
       }
       this.pending = resolve;
-      this.worker.postMessage(`setoption name Skill Level value ${limit.skill}`);
-      this.worker.postMessage('ucinewgame');
+      this.lastCp = null;
+      this.lastMate = null;
+      this.worker.postMessage(`setoption name Skill Level value ${options.skill}`);
+      this.worker.postMessage(`setoption name Contempt value ${options.contempt ?? 0}`);
       this.worker.postMessage(`position fen ${fen}`);
-      this.worker.postMessage(limit.depth ? `go depth ${limit.depth}` : `go movetime ${limit.movetime ?? 600}`);
+      this.worker.postMessage(
+        options.depth ? `go depth ${options.depth}` : `go movetime ${options.movetime ?? 600}`,
+      );
 
       // Safety net: never hang the UI if the engine never replies.
-      const budget = (limit.movetime ?? 1500) + 5000;
+      const budget = options.movetime ? options.movetime + 5000 : 30000;
       setTimeout(() => {
-        if (this.pending === resolve) this.resolvePending(null);
+        if (this.pending === resolve) this.resolvePending(NULL_RESULT);
       }, budget);
     });
+  }
+
+  /** Best move only (UCI), or null. */
+  async bestMove(fen: string, options: EngineGoOptions): Promise<string | null> {
+    return (await this.go(fen, options)).uci;
   }
 
   dispose(): void {

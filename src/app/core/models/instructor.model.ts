@@ -44,7 +44,7 @@ export interface HintState {
 }
 
 export type CoachingType = 'praise' | 'warning' | 'tip' | 'explanation';
-export type CoachingTrigger = 'player-move' | 'bot-move' | 'hint-request';
+export type CoachingTrigger = 'player-move' | 'bot-move' | 'hint-request' | 'game-review';
 
 /** A coaching bubble shown in the side panel. */
 export interface CoachingMessage {

@@ -12,6 +12,7 @@ import {
 } from '../models/instructor.model';
 import { InstructorService } from '../services/instructor.service';
 import { SoundService } from '../services/sound.service';
+import { StorageService } from '../services/storage.service';
 
 const START_FEN = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1';
 
@@ -82,7 +83,27 @@ export const InstructorStore = signalStore(
     /** Last move played, UCI, for board highlighting. */
     lastMove: computed(() => moveHistory().at(-1)?.uci ?? null),
   })),
-  withMethods((store, service = inject(InstructorService), sound = inject(SoundService)) => {
+  withMethods(
+    (
+      store,
+      service = inject(InstructorService),
+      sound = inject(SoundService),
+      storage = inject(StorageService),
+    ) => {
+    // Persist the finished game locally for Game Review & Insights.
+    function persistGame(): void {
+      const moves = store.moveHistory();
+      if (moves.length === 0) return;
+      void storage.saveGame({
+        id: crypto.randomUUID(),
+        playedAt: new Date(),
+        playerColor: store.playerColor(),
+        difficulty: store.difficulty(),
+        result: store.gameResult(),
+        moves,
+      });
+    }
+
     // One sound per move: game-over > check > capture > plain move.
     function moveSound(move: { san: string; captured?: string }, over: boolean): void {
       if (over) sound.gameOver();
@@ -116,6 +137,7 @@ export const InstructorStore = signalStore(
           gameResult: end.gameResult,
           inCheck: end.inCheck,
         });
+        if (store.phase() === 'game-over') persistGame();
         return;
       }
 
@@ -131,6 +153,7 @@ export const InstructorStore = signalStore(
         coachingLoading: true,
       });
       moveSound(move, over);
+      if (over) persistGame();
 
       // Explain the bot move in natural language (async — attach when ready).
       const coaching = await service.coach({
@@ -210,6 +233,7 @@ export const InstructorStore = signalStore(
           inCheck,
         });
         moveSound(move, over);
+        if (over) persistGame();
 
         void coachPlayerMove(move.san, chess.fen(), store.difficulty());
         if (!over) applyBotMove();

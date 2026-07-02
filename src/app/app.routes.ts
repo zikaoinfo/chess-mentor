@@ -19,6 +19,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'review',
+    title: 'ChessMentor — Analyse de partie',
+    loadComponent: () =>
+      import('./features/analysis/pages/game-review/game-review').then((m) => m.GameReviewPage),
+  },
+  {
     path: 'stats',
     title: 'ChessMentor — Progression',
     loadComponent: () =>

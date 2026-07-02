@@ -17,7 +17,7 @@ import {
   CoachingType,
   Difficulty,
 } from '../models/instructor.model';
-import { StockfishEngine } from './stockfish-engine';
+import { EngineResult, StockfishEngine } from './stockfish-engine';
 
 /**
  * Map a difficulty tier to a Stockfish "Skill Level" (≈ Elo):
@@ -135,6 +135,11 @@ export class InstructorService {
       depth: 12,
     });
     return uci ?? fallbackMove(fen);
+  }
+
+  /** Full-strength evaluation of a position (Game Review, drills). */
+  evaluate(fen: string, depth = 15): Promise<EngineResult> {
+    return this.getEngine().go(fen, { skill: 20, depth });
   }
 
   /** Generate a coaching message via Claude (or a local fallback). */
