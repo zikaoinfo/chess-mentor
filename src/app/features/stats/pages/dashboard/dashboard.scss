@@ -82,3 +82,43 @@
   font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
+
+// ─── Sauvegarde / restauration ───────────────────────────────────────────
+.backup {
+  margin-top: var(--cm-space-6);
+  padding: var(--cm-space-4);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  max-width: 560px;
+}
+
+.backup__title {
+  margin: 0 0 var(--cm-space-1);
+  font-size: 1rem;
+}
+
+.backup__hint {
+  margin: 0 0 var(--cm-space-3);
+  color: var(--cm-text-muted);
+  font-size: 0.85rem;
+}
+
+.backup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-2);
+}
+
+// The label doubles as the file-input trigger; align it with buttons.
+.backup__import {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.backup__status {
+  margin: var(--cm-space-2) 0 0;
+  color: var(--cm-success);
+  font-size: 0.85rem;
+}

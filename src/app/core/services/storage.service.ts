@@ -4,6 +4,7 @@ import { SavedGame } from '../models/saved-game.model';
 import { RepertoireEntry } from '../models/opening.model';
 import { RushScore } from '../models/rush.model';
 import { DrillProgress } from '../models/drill.model';
+import { ChessMentorBackup } from '../models/backup.model';
 
 const DB_NAME = 'chess-mentor';
 const DB_VERSION = 2;
@@ -99,6 +100,56 @@ export class StorageService {
 
   async allDrills(): Promise<DrillProgress[]> {
     return this.readAll<DrillProgress>('drills');
+  }
+
+  // ─── Backup (export / import) ───────────────────────────────────────────
+  /** Snapshot of every store, ready to be serialized to JSON. */
+  async exportAll(): Promise<ChessMentorBackup> {
+    const [attempts, games, repertoire, rush, drills] = await Promise.all([
+      this.readAll<PuzzleAttempt>('attempts'),
+      this.readAll<SavedGame>('games'),
+      this.readAll<RepertoireEntry>('repertoire'),
+      this.readAll<RushScore>('rush'),
+      this.readAll<DrillProgress>('drills'),
+    ]);
+    return {
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      attempts,
+      games,
+      repertoire,
+      rush,
+      drills,
+    };
+  }
+
+  /** REPLACE all local data with the backup's (dates revived from ISO). */
+  async importAll(backup: ChessMentorBackup): Promise<void> {
+    const asDate = (v: unknown): Date => new Date(v as string);
+    await Promise.all(STORES.map(({ name }) => this.clearStore(name)));
+    await Promise.all([
+      ...backup.attempts.map((a) =>
+        this.write('attempts', { ...a, solvedAt: asDate(a.solvedAt) }, 'add'),
+      ),
+      ...backup.games.map((g) =>
+        this.write(
+          'games',
+          {
+            ...g,
+            playedAt: asDate(g.playedAt),
+            review: g.review ? { ...g.review, analyzedAt: asDate(g.review.analyzedAt) } : g.review,
+          },
+          'put',
+        ),
+      ),
+      ...backup.repertoire.map((r) =>
+        this.write('repertoire', { ...r, addedAt: asDate(r.addedAt) }, 'put'),
+      ),
+      ...backup.rush.map((s) => this.write('rush', { ...s, at: asDate(s.at) }, 'add')),
+      ...backup.drills.map((d) =>
+        this.write('drills', { ...d, completedAt: asDate(d.completedAt) }, 'put'),
+      ),
+    ]);
   }
 
   // ─── Generic plumbing ───────────────────────────────────────────────────
