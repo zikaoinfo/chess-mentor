@@ -1,0 +1,60 @@
+<section class="drills">
+  @if (!drill()) {
+    <h1 class="drills__title">Entraînement des finales</h1>
+    <p class="drills__sub">Convertis ces positions gagnantes — Stockfish défend au mieux.</p>
+    @for (group of groups(); track group.category) {
+      <h2 class="drills__cat">
+        {{ group.category }}
+        <span class="drills__count">{{ group.done }}/{{ group.drills.length }}</span>
+      </h2>
+      <div class="cards">
+        @for (d of group.drills; track d.id) {
+          <button type="button" class="card" (click)="start(d)">
+            <span class="card__label">{{ d.label }}</span>
+            <span class="card__goal">{{ d.goal === 'mate' ? 'Objectif : mat' : 'Objectif : promotion' }}</span>
+            @if (isDone(d.id)) {
+              <span class="card__done">réussi ✓</span>
+            }
+          </button>
+        }
+      </div>
+    }
+  } @else {
+    <div class="play__top">
+      <button type="button" class="cm-btn" (click)="backToList()">← Finales</button>
+      <strong>{{ drill()!.label }}</strong>
+      <button type="button" class="cm-btn" (click)="retry()">Recommencer</button>
+    </div>
+
+    @if (feedback(); as msg) {
+      <p
+        class="feedback"
+        [class.feedback--won]="status() === 'won'"
+        [class.feedback--failed]="status() === 'failed'"
+        role="status"
+        aria-live="polite"
+      >
+        {{ msg }}
+      </p>
+    }
+
+    <div class="play__board">
+      <app-chessboard
+        [fen]="fen()"
+        [interactive]="interactive()"
+        [lockedForBot]="botThinking()"
+        [lastMove]="lastMove()"
+        (move)="onMove($event)"
+      />
+    </div>
+
+    @if (status() !== 'playing') {
+      <div class="play__actions">
+        <button type="button" class="cm-btn cm-btn--primary" (click)="retry()">
+          {{ status() === 'won' ? 'Rejouer' : 'Réessayer' }}
+        </button>
+        <button type="button" class="cm-btn" (click)="backToList()">Autres finales</button>
+      </div>
+    }
+  }
+</section>

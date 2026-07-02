@@ -37,6 +37,14 @@ export const routes: Routes = [
       import('./features/openings/pages/explorer/explorer').then((m) => m.OpeningsExplorer),
   },
   {
+    path: 'drills',
+    title: 'ChessMentor \u2014 Finales',
+    loadComponent: () =>
+      import('./features/drills/pages/endgame-trainer/endgame-trainer').then(
+        (m) => m.EndgameTrainer,
+      ),
+  },
+  {
     path: 'insights',
     title: 'ChessMentor — Insights',
     loadComponent: () =>

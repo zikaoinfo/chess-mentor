@@ -78,7 +78,7 @@
 - Le style module les paramètres Stockfish (Skill Level + contempt)
 - Sélection du bot avant la partie dans un carrousel
 
-## Feature 6 — Endgame Drills `[ ]`
+## Feature 6 — Endgame Drills `[x]` (2026-07-02)
 > Équivalent : "Endgames / Drills" (all tiers)
 
 - `features/drills/pages/endgame-trainer/`
