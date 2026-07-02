@@ -18,6 +18,16 @@
   min-width: 0;
 }
 
+// Capture bars hug the board width, above (bot) and below (player).
+.board-col {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-1);
+  width: 100%;
+  max-width: min(100%, 92vmin, 82vh, 1200px);
+  margin-inline: auto;
+}
+
 .game__side {
   display: flex;
   flex-direction: column;

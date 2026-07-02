@@ -73,6 +73,15 @@
     <div class="banner" role="status">
       <span aria-hidden="true">🏁</span>
       Partie terminée — {{ resultLabel() }}
+      @if (lastGameId(); as id) {
+        <a
+          class="cm-btn cm-btn--primary banner__cta"
+          routerLink="/review"
+          [queryParams]="{ game: id }"
+        >
+          Analyser la partie →
+        </a>
+      }
     </div>
   } @else {
     <div class="turn" [class.turn--thinking]="thinking()">

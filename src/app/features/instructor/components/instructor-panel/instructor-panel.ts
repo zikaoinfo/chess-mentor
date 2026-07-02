@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import {
   CoachingMessage,
   CoachingType,
@@ -35,7 +36,7 @@ const RESULT_LABEL: Readonly<Record<GameResult, string>> = {
 @Component({
   selector: 'app-instructor-panel',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [MoveHistory],
+  imports: [MoveHistory, RouterLink],
   templateUrl: './instructor-panel.html',
   styleUrl: './instructor-panel.scss',
 })
@@ -48,6 +49,7 @@ export class InstructorPanel {
   readonly moves = input<readonly InstructorMove[]>([]);
   readonly selectedBot = input<BotPersona | null>(null);
   readonly playerColor = input<'white' | 'black'>('white');
+  readonly lastGameId = input<string | null>(null);
 
   readonly difficultyChange = output<Difficulty>();
   readonly botSelect = output<BotPersona | null>();

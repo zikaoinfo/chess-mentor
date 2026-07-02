@@ -33,6 +33,8 @@ interface InstructorState {
   readonly gameResult: GameResult | null;
   /** True when the side to move is in check. */
   readonly inCheck: boolean;
+  /** Id of the last game persisted for review (set at game over). */
+  readonly lastGameId: string | null;
 }
 
 const initialState: InstructorState = {
@@ -47,6 +49,7 @@ const initialState: InstructorState = {
   playerColor: 'white',
   gameResult: null,
   inCheck: false,
+  lastGameId: null,
 };
 
 function uciToMove(uci: string): { from: string; to: string; promotion?: string } {
@@ -98,8 +101,10 @@ export const InstructorStore = signalStore(
     function persistGame(): void {
       const moves = store.moveHistory();
       if (moves.length === 0) return;
+      const id = crypto.randomUUID();
+      patchState(store, { lastGameId: id });
       void storage.saveGame({
-        id: crypto.randomUUID(),
+        id,
         playedAt: new Date(),
         playerColor: store.playerColor(),
         difficulty: store.difficulty(),

@@ -1,0 +1,42 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+  min-height: 1.6rem;
+  font-size: 0.85rem;
+}
+
+.bar__label {
+  color: var(--cm-text-muted);
+  font-weight: 600;
+  min-width: 3.2rem;
+}
+
+.bar__pieces {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.bar__piece--white {
+  color: #f0e9d8;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.bar__piece--black {
+  color: #3a3a44;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.bar__none {
+  color: var(--cm-text-muted);
+  opacity: 0.4;
+}
+
+.bar__adv {
+  color: var(--cm-success);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

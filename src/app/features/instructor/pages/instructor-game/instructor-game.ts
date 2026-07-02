@@ -6,12 +6,14 @@ import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { InstructorPanel } from '../../components/instructor-panel/instructor-panel';
 import { HintOverlay } from '../../components/hint-overlay/hint-overlay';
 import { fenTurn, kingSquare } from '../../../board/utils/fen.utils';
+import { captureSummary } from '../../utils/captures.utils';
+import { CaptureBar } from '../../components/capture-bar/capture-bar';
 
 /** "Play the bot" page: board + coaching panel, driven by the InstructorStore. */
 @Component({
   selector: 'app-instructor-game',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Chessboard, InstructorPanel, HintOverlay],
+  imports: [Chessboard, InstructorPanel, HintOverlay, CaptureBar],
   templateUrl: './instructor-game.html',
   styleUrl: './instructor-game.scss',
 })
@@ -31,6 +33,32 @@ export class InstructorGame {
   protected readonly moveHistory = this.store.moveHistory;
   protected readonly coachingLoading = this.store.coachingLoading;
   protected readonly bot = this.store.bot;
+  protected readonly lastGameId = this.store.lastGameId;
+
+  /** Chess.com-style capture rows, recomputed from the move history. */
+  private readonly captures = computed(() =>
+    captureSummary(this.moveHistory().map((m) => m.uci)),
+  );
+  protected readonly botName = computed(() => this.bot()?.name ?? 'Coach');
+  protected readonly playerCaptures = computed(() =>
+    this.playerColor() === 'white' ? this.captures().byWhite : this.captures().byBlack,
+  );
+  protected readonly botCaptures = computed(() =>
+    this.playerColor() === 'white' ? this.captures().byBlack : this.captures().byWhite,
+  );
+  /** Material lead from the player's side; the bot's is its opposite. */
+  protected readonly playerAdvantage = computed(() => {
+    const diff = this.captures().diff;
+    return this.playerColor() === 'white' ? diff : -diff;
+  });
+  protected readonly botAdvantage = computed(() => -this.playerAdvantage());
+  /** Colour worn by the pieces each side captured (the opponent's colour). */
+  protected readonly botPieceColor = computed<'w' | 'b'>(() =>
+    this.playerColor() === 'white' ? 'b' : 'w',
+  );
+  protected readonly playerPieceColor = computed<'w' | 'b'>(() =>
+    this.playerColor() === 'white' ? 'w' : 'b',
+  );
 
   /** Square of the checked king (the side to move), or null. */
   protected readonly checkSquare = computed(() => {

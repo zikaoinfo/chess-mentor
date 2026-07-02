@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Chess } from 'chess.js';
 
 import { StorageService } from '../../../../core/services/storage.service';
@@ -148,8 +148,20 @@ export class GameReviewPage {
     return { player: count('player'), bot: count('bot') };
   });
 
+  private readonly route = inject(ActivatedRoute);
+
   constructor() {
-    void this.storage.allGames().then((games) => this.games.set(games));
+    void this.storage.allGames().then((games) => {
+      this.games.set(games);
+      // Deep link from the end-of-game banner: open the game and, if it has
+      // never been reviewed, launch the analysis right away.
+      const requested = this.route.snapshot.queryParamMap.get('game');
+      const game = requested ? games.find((g) => g.id === requested) : undefined;
+      if (game) {
+        this.select(game);
+        if (!game.review) void this.analyze();
+      }
+    });
   }
 
   protected select(game: SavedGame): void {
