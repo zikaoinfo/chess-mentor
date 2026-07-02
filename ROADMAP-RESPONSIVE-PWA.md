@@ -95,7 +95,10 @@
 > À faire une fois la Partie 1 validée. Le service worker ne fonctionne QU'EN
 > build de production, jamais en `ng serve`.
 
-## 2.1 — Ajouter le support PWA Angular `[ ]`
+## 2.1 — Ajouter le support PWA Angular `[x]` (2026-07-02)
+> `ng add @angular/pwa` exécuté ; `provideServiceWorker('ngsw-worker.js',
+> { enabled: !isDevMode(), registrationStrategy: 'registerWhenStable:30000' })`
+> vérifié dans `app.config.ts` (conforme au bloc ci-dessous).
 ```bash
 ng add @angular/pwa
 ```
@@ -108,7 +111,9 @@ provideServiceWorker('ngsw-worker.js', {
 }),
 ```
 
-## 2.2 — Configurer le manifest `[ ]`
+## 2.2 — Configurer le manifest `[x]` (2026-07-02)
+> Manifest conforme au bloc ci-dessous (scope/start_url `/chess-mentor/`,
+> thème #1a1a2e, portrait, 8 icônes maskable+any).
 Éditer `public/manifest.webmanifest` :
 ```json
 {
@@ -136,7 +141,11 @@ provideServiceWorker('ngsw-worker.js', {
 **Piège GitHub Pages :** `scope` et `start_url` DOIVENT inclure `/chess-mentor/`.
 Sinon l'installation échoue ou pointe vers la mauvaise URL.
 
-## 2.3 — Icônes de l'app `[ ]`
+## 2.3 — Icônes de l'app `[x]` (2026-07-02)
+> 8 tailles générées (rendu Chromium) : cavalier accent #e94560 centré
+> (~58 %, dans la zone sûre maskable 80 %) sur fond radial navy opaque.
+> Métas iOS ajoutées dans `index.html` (apple-touch-icon 192, capable,
+> status-bar black-translucent, titre).
 - Icône source `icon-512x512.png` : fond opaque `#1a1a2e`, pièce d'échec centrée
 - Zone de sécurité `maskable` : contenu dans les 80% centraux (coins rognables)
 - Générer toutes les tailles (72 → 512px) via maskable.app ou un script
@@ -149,7 +158,12 @@ Sinon l'installation échoue ou pointe vers la mauvaise URL.
 <meta name="apple-mobile-web-app-title" content="ChessMentor">
 ```
 
-## 2.4 — Stratégie de cache (`ngsw-config.json`) `[ ]`
+## 2.4 — Stratégie de cache (`ngsw-config.json`) `[x]` (2026-07-02)
+> App shell en prefetch ; assets (icons/assets/wasm/images/fonts) en lazy ;
+> **groupe `engine` dédié en prefetch** pour `stockfish.js` + `stockfish.wasm`
+> (analyse garantie hors-ligne — vérifié : wasm servi du cache, 366 900 octets).
+> dataGroups : lichess.org/api (freshness 1h) + explorer.lichess.ovh
+> (freshness 7j pour les stats d'ouvertures).
 App shell + assets :
 ```json
 {
@@ -178,13 +192,21 @@ App shell + assets :
 **Critique — Stockfish WASM :** le `.wasm` et le worker doivent être dans un
 assetGroup, sinon l'analyse ne marche plus hors-ligne. Vérifier explicitement.
 
-## 2.5 — État hors-ligne `[ ]`
+## 2.5 — État hors-ligne `[x]` (2026-07-02)
+> `NetworkService` (signal `isOnline` sur navigator.onLine + events) ;
+> bannière « 📡 Mode hors-ligne — nouveaux puzzles indisponibles » dans le
+> shell ; vérifié hors-ligne sur build prod : app + route lazy /drills se
+> chargent, wasm dispo, pas de crash (httpResource gère l'état d'erreur).
 - `NetworkService` exposant un signal `isOnline` (`navigator.onLine` + events `online`/`offline`)
 - Bannière discrète hors-ligne : "Mode hors-ligne — nouveaux puzzles indisponibles"
 - Fonctions offline OK : rejouer une partie locale, puzzles déjà chargés, analyse Stockfish
 - Fonctions réseau (nouveau puzzle Lichess, coaching Claude) : message clair, pas de crash
 
-## 2.6 — Prompt d'installation `[ ]`
+## 2.6 — Prompt d'installation `[x]` (2026-07-02)
+> `PwaInstallService` signal-based : capture `beforeinstallprompt`
+> (`canInstall`), `install()` rejoue le prompt ; iOS Safari non-standalone
+> détecté → bannière « Partager → Sur l'écran d'accueil ». Dismissable (✕),
+> par session.
 - Capturer `beforeinstallprompt` (Android / desktop Chrome) dans un `PwaInstallService`
   signal-based (`canInstall = signal(false)`)
 - Bouton discret "Installer l'app" quand l'event est dispo
@@ -192,7 +214,9 @@ assetGroup, sinon l'analyse ne marche plus hors-ligne. Vérifier explicitement.
   ("Partager → Sur l'écran d'accueil")
 - Non-intrusif : bannière dismissable ou bouton dans les réglages
 
-## 2.7 — Gestion des mises à jour `[ ]`
+## 2.7 — Gestion des mises à jour `[x]` (2026-07-02)
+> `PwaUpdateService` : `versionUpdates` → `toSignal` (VERSION_READY) →
+> bannière « Nouvelle version disponible — Recharger » (reload au clic).
 ```typescript
 import { SwUpdate } from '@angular/service-worker';
 // écouter versionUpdates → toast "Nouvelle version dispo — Recharger"
@@ -200,7 +224,18 @@ import { SwUpdate } from '@angular/service-worker';
 ```
 Sans ça, les utilisateurs restent bloqués sur une vieille version après déploiement.
 
-## 2.8 — Audit et validation `[ ]`
+## 2.8 — Audit et validation `[x]` (2026-07-02)
+> Build prod `--base-href /chess-mentor/` servi statiquement sous
+> `/chess-mentor/` (émulation GitHub Pages avec fallback 404→index) :
+> - Service worker actif, scope `http://…/chess-mentor/`, driver NGSW « NORMAL »
+> - `Page.getAppManifest` (CDP) : **0 erreur d'installabilité** — c'est
+>   l'audit Chrome qui alimentait la catégorie PWA de Lighthouse, retirée
+>   de Lighthouse ≥ v12 ; « tout au vert » = installabilité sans erreur
+> - Hors-ligne : reload OK, route lazy OK, stockfish.wasm depuis le cache
+> - `404.html` (copie d'index) : compatible — le SW prend la main sur les
+>   navigations une fois installé ; le fallback ne sert qu'au premier accès
+> - Installation réelle Android/iPhone : à faire sur devices après merge
+>   (impossible en environnement distant).
 - Build prod : `ng build --configuration production --base-href /chess-mentor/`
 - Servir le build localement (PAS `ng serve`) :
   `npx http-server dist/chess-mentor/browser -p 8080`

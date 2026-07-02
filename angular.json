@@ -29,9 +29,7 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles/main.scss"
-            ],
+            "styles": ["src/styles/main.scss"],
             "stylePreprocessorOptions": {
               "includePaths": ["src/styles"]
             }
@@ -50,7 +48,8 @@
                   "maximumError": "8kB"
                 }
               ],
-              "outputHashing": "all"
+              "outputHashing": "all",
+              "serviceWorker": "ngsw-config.json"
             },
             "development": {
               "optimization": false,
