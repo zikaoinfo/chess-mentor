@@ -117,3 +117,50 @@
   justify-content: center;
   margin-top: var(--cm-space-4);
 }
+
+// ─── End-of-run review of missed puzzles ─────────────────────────────────
+.missed {
+  margin-top: var(--cm-space-6);
+}
+
+.missed__title {
+  font-size: 1.05rem;
+  margin: 0 0 var(--cm-space-3);
+}
+
+.missed__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--cm-space-4);
+}
+
+.missed__item {
+  margin: 0;
+  padding: var(--cm-space-3);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+}
+
+.missed__solution {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-1) var(--cm-space-2);
+  margin-top: var(--cm-space-2);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+}
+
+.missed__label {
+  color: var(--cm-text-muted);
+}
+
+// The solver's own moves stand out; opponent replies stay muted.
+.missed__move {
+  color: var(--cm-text-muted);
+}
+
+.missed__move--yours {
+  color: var(--cm-success);
+  font-weight: 700;
+}
