@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DatePipe, DecimalPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { PuzzleStore } from '../../../../core/store/puzzle.store';
 
 /** Progression dashboard — solved totals, accuracy and recent attempts. */
 @Component({
   selector: 'app-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, RouterLink],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

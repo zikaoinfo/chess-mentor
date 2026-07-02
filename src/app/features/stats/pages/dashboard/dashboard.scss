@@ -1,5 +1,13 @@
+.dashboard__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cm-space-3);
+  margin-bottom: var(--cm-space-6);
+}
+
 .dashboard__title {
-  margin: 0 0 var(--cm-space-6);
+  margin: 0;
 }
 
 .dashboard__subtitle {

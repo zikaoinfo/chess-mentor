@@ -1,0 +1,276 @@
+.review__title {
+  margin: 0 0 var(--cm-space-4);
+}
+
+.empty,
+.hint-text {
+  color: var(--cm-text-muted);
+}
+
+.games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-2);
+}
+
+.game-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-3);
+  padding: var(--cm-space-3) var(--cm-space-4);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  color: var(--cm-text);
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+
+  &:hover {
+    border-color: var(--cm-accent);
+  }
+}
+
+.game-row__result {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  min-width: 2.6rem;
+}
+
+.game-row__meta {
+  flex: 1;
+  color: var(--cm-text-muted);
+}
+
+.game-row__badge {
+  color: var(--cm-success);
+  font-size: 0.8rem;
+}
+
+.review__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cm-space-3);
+  margin-bottom: var(--cm-space-4);
+}
+
+.progress {
+  color: var(--cm-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.review__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: 20px;
+  align-items: start;
+}
+
+.review__board {
+  display: flex;
+  gap: var(--cm-space-2);
+  justify-content: center;
+  min-width: 0;
+}
+
+// Vertical evaluation bar — white share grows from the bottom.
+.evalbar {
+  width: 14px;
+  align-self: stretch;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #23232b;
+  border: 1px solid var(--cm-border);
+  position: relative;
+}
+
+.evalbar__white {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #ece6d6;
+  transition: height 200ms var(--cm-ease);
+}
+
+.review__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-3);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+}
+
+.nav .cm-btn {
+  padding: 6px 10px;
+}
+
+.nav__ply {
+  flex: 1;
+  text-align: center;
+  color: var(--cm-text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+// Eval curve — 2px line in the accent, recessive zero axis, status dots.
+.chart {
+  margin: 0;
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  padding: var(--cm-space-3);
+}
+
+.chart__title {
+  font-size: 0.8rem;
+  color: var(--cm-text-muted);
+  margin-bottom: var(--cm-space-2);
+}
+
+.chart svg {
+  display: block;
+  width: 100%;
+  height: 96px;
+}
+
+.chart__zero {
+  stroke: var(--cm-border);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart__line {
+  fill: none;
+  stroke: var(--cm-accent);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.chart__dot {
+  fill: var(--cm-warning);
+  cursor: pointer;
+}
+
+.chart__dot--blunder {
+  fill: var(--cm-error);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--cm-space-2);
+}
+
+.summary__col {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-2);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  padding: var(--cm-space-2) var(--cm-space-3);
+  font-size: 0.85rem;
+}
+
+.summary__who {
+  font-weight: 700;
+  margin-right: auto;
+}
+
+.pill {
+  font-variant-numeric: tabular-nums;
+}
+
+.pill--blunder {
+  color: var(--cm-error);
+}
+
+.pill--mistake {
+  color: var(--cm-warning);
+}
+
+.pill--inacc {
+  color: var(--cm-text-muted);
+}
+
+.moves {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  padding: var(--cm-space-2);
+}
+
+.move {
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: var(--cm-text);
+  padding: 2px 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-variant-numeric: tabular-nums;
+
+  &:hover {
+    border-color: var(--cm-accent);
+  }
+}
+
+.move--active {
+  background: var(--cm-accent-soft);
+  border-color: var(--cm-accent);
+}
+
+.move__num {
+  color: var(--cm-text-muted);
+}
+
+.move__badge {
+  font-weight: 700;
+}
+
+.move[data-cls='blunder'] .move__badge {
+  color: var(--cm-error);
+}
+
+.move[data-cls='mistake'] .move__badge {
+  color: var(--cm-warning);
+}
+
+.move[data-cls='inaccuracy'] .move__badge {
+  color: var(--cm-text-muted);
+}
+
+.move[data-cls='best'] .move__badge,
+.move[data-cls='brilliant'] .move__badge {
+  color: var(--cm-success);
+}
+
+.coachmsg {
+  background: var(--cm-surface-2);
+  border-left: 3px solid var(--cm-accent);
+  border-radius: var(--cm-radius);
+  padding: 12px 14px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .review__body {
+    grid-template-columns: 1fr;
+  }
+}

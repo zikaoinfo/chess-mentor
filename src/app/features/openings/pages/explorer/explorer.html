@@ -1,0 +1,82 @@
+<section class="explorer">
+  <div class="explorer__board">
+    <app-chessboard [fen]="fen()" [interactive]="true" [lastMove]="lastMove()" (move)="onBoardMove($event)" />
+  </div>
+
+  <aside class="explorer__side">
+    <div class="opening" role="status">
+      @if (openingLabel(); as label) {
+        <strong>{{ label }}</strong>
+      } @else {
+        <span class="muted">{{ line().length === 0 ? 'Position initiale' : 'Hors théorie connue' }}</span>
+      }
+      @if (sans()) {
+        <span class="opening__line">{{ sans() }}</span>
+      }
+    </div>
+
+    <div class="controls">
+      <button type="button" class="cm-btn" (click)="undo()" [disabled]="line().length === 0">← Annuler</button>
+      <button type="button" class="cm-btn" (click)="reset()" [disabled]="line().length === 0">Position initiale</button>
+      <button
+        type="button"
+        class="cm-btn cm-btn--primary"
+        (click)="addToRepertoire()"
+        [disabled]="line().length === 0 || saved()"
+      >
+        {{ saved() ? 'Dans le répertoire ✓' : 'Ajouter à mon répertoire' }}
+      </button>
+    </div>
+
+    @if (isLoading()) {
+      <p class="muted">Chargement des statistiques…</p>
+    } @else if (error()) {
+      <p class="muted">Explorateur indisponible (hors-ligne ?). Tu peux quand même jouer sur l'échiquier.</p>
+    } @else if (data(); as d) {
+      <table class="moves" aria-label="Coups les plus joués depuis cette position">
+        <thead>
+          <tr>
+            <th scope="col">Coup</th>
+            <th scope="col">Parties</th>
+            <th scope="col" class="moves__result">Blancs / Nulles / Noirs</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of d.moves; track m.uci) {
+            <tr class="moves__row" (click)="playRow(m)" tabindex="0" (keydown.enter)="playRow(m)">
+              <td class="moves__san">{{ m.san }}</td>
+              <td class="moves__games">{{ rowTotal(m) }}</td>
+              <td>
+                <span class="bar" aria-hidden="true">
+                  <span class="bar__white" [style.width.%]="rowPct(m, m.white)"></span>
+                  <span class="bar__draw" [style.width.%]="rowPct(m, m.draws)"></span>
+                  <span class="bar__black" [style.width.%]="rowPct(m, m.black)"></span>
+                </span>
+                <span class="bar__label">{{ rowPct(m, m.white) | number: '1.0-0' }}% B</span>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="3" class="muted">Aucune partie de référence ici.</td></tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <h2 class="explorer__subtitle">Mon répertoire</h2>
+    @if (repertoire().length === 0) {
+      <p class="muted">Aucune ligne sauvegardée pour l'instant.</p>
+    } @else {
+      <ul class="repertoire">
+        @for (r of repertoire(); track r.id) {
+          <li class="repertoire__row">
+            <button type="button" class="repertoire__load" (click)="loadEntry(r)">
+              <strong>{{ r.name ?? 'Ligne personnalisée' }}</strong>
+              <span class="muted">{{ r.line }} · {{ r.addedAt | date: 'short' }}</span>
+            </button>
+            <button type="button" class="cm-btn repertoire__del" (click)="removeEntry(r)" aria-label="Supprimer">✕</button>
+          </li>
+        }
+      </ul>
+    }
+  </aside>
+</section>

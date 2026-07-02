@@ -10,3 +10,12 @@ export const LICHESS_API_URL = new InjectionToken<string>('LICHESS_API_URL', {
   providedIn: 'root',
   factory: () => 'https://lichess.org/api',
 });
+
+/**
+ * Base URL of the Lichess opening explorer (separate host from the main API).
+ * @see https://lichess.org/api#tag/Opening-Explorer
+ */
+export const EXPLORER_API_URL = new InjectionToken<string>('EXPLORER_API_URL', {
+  providedIn: 'root',
+  factory: () => 'https://explorer.lichess.ovh',
+});

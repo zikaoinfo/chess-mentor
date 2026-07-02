@@ -1,0 +1,119 @@
+.rush__title {
+  margin: 0 0 var(--cm-space-2);
+}
+
+.rush__sub {
+  color: var(--cm-text-muted);
+  margin: 0 0 var(--cm-space-4);
+}
+
+.modes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--cm-space-3);
+  max-width: 720px;
+}
+
+.mode {
+  display: flex;
+  flex-direction: column;
+  gap: var(--cm-space-1);
+  padding: var(--cm-space-4);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  color: var(--cm-text);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    border-color: var(--cm-accent);
+  }
+}
+
+.mode__label {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.mode__hint {
+  color: var(--cm-text-muted);
+  font-size: 0.85rem;
+}
+
+.hud {
+  display: flex;
+  align-items: center;
+  gap: var(--cm-space-4);
+  margin-bottom: var(--cm-space-3);
+  max-width: min(100%, 92vmin, 82vh, 1200px);
+  margin-inline: auto;
+}
+
+.hud__clock {
+  font-size: 1.3rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud__clock--low {
+  color: var(--cm-error);
+}
+
+.hud__score {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--cm-accent);
+  font-variant-numeric: tabular-nums;
+  margin-left: auto;
+}
+
+.hud__strikes {
+  display: flex;
+  gap: 4px;
+}
+
+.hud__x {
+  color: var(--cm-border);
+  font-weight: 800;
+}
+
+.hud__x--on {
+  color: var(--cm-error);
+}
+
+.rush__board {
+  display: flex;
+  justify-content: center;
+}
+
+.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 92vmin, 82vh, 560px);
+  aspect-ratio: 1 / 1;
+  border: 1px dashed var(--cm-border);
+  border-radius: var(--cm-radius);
+  color: var(--cm-text-muted);
+}
+
+.endcard {
+  text-align: center;
+  padding: var(--cm-space-8) 0;
+}
+
+.endcard__score {
+  font-size: 4rem;
+  font-weight: 800;
+  color: var(--cm-accent);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.endcard__actions {
+  display: flex;
+  gap: var(--cm-space-2);
+  justify-content: center;
+  margin-top: var(--cm-space-4);
+}

@@ -1,0 +1,50 @@
+import { EndgameDrill } from '../../../core/models/drill.model';
+
+/**
+ * Classic endgame drills. The player always has White and the winning side;
+ * Stockfish (full strength) defends. Positions are theoretical wins.
+ */
+export const DRILLS: readonly EndgameDrill[] = [
+  {
+    id: 'kq-k-1',
+    category: 'Dame contre roi',
+    label: 'Mat Dame + Roi (roi centré)',
+    fen: '8/8/8/4k3/8/8/4Q3/4K3 w - - 0 1',
+    goal: 'mate',
+  },
+  {
+    id: 'kq-k-2',
+    category: 'Dame contre roi',
+    label: 'Mat Dame + Roi (roi au bord)',
+    fen: '3k4/8/8/8/8/8/8/3QK3 w - - 0 1',
+    goal: 'mate',
+  },
+  {
+    id: 'kr-k-1',
+    category: 'Tour contre roi',
+    label: 'Mat Tour + Roi (roi centré)',
+    fen: '8/8/8/4k3/8/8/4R3/4K3 w - - 0 1',
+    goal: 'mate',
+  },
+  {
+    id: 'kr-k-2',
+    category: 'Tour contre roi',
+    label: 'Mat Tour + Roi (roi repoussé)',
+    fen: '3k4/8/8/8/8/8/8/2R1K3 w - - 0 1',
+    goal: 'mate',
+  },
+  {
+    id: 'kp-k-1',
+    category: 'Opposition des rois',
+    label: 'Pion + opposition (colonne e)',
+    fen: '4k3/8/4K3/4P3/8/8/8/8 w - - 0 1',
+    goal: 'promote',
+  },
+  {
+    id: 'kp-k-2',
+    category: 'Opposition des rois',
+    label: 'Pion + opposition (colonne d)',
+    fen: '3k4/8/3K4/3P4/8/8/8/8 w - - 0 1',
+    goal: 'promote',
+  },
+] as const;

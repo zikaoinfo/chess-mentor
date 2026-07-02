@@ -1,0 +1,57 @@
+<section class="rush">
+  @switch (screen()) {
+    @case ('menu') {
+      <h1 class="rush__title">⚡ Puzzle Rush</h1>
+      <p class="rush__sub">Enchaîne un maximum de puzzles. La difficulté monte avec ton score.</p>
+      <div class="modes">
+        @for (m of modes; track m.value) {
+          <button type="button" class="mode" (click)="start(m.value)">
+            <span class="mode__label">{{ m.label }}</span>
+            <span class="mode__hint">{{ m.hint }}</span>
+          </button>
+        }
+      </div>
+    }
+    @case ('running') {
+      <div class="hud">
+        @if (!isSurvival()) {
+          <span class="hud__clock" [class.hud__clock--low]="timeLeft() <= 30">⏱ {{ clock() }}</span>
+        } @else {
+          <span class="hud__clock">♾️ Survie</span>
+        }
+        <span class="hud__score">{{ score() }}</span>
+        <span class="hud__strikes" aria-label="Erreurs">
+          @for (i of [0, 1, 2]; track i) {
+            <span [class.hud__x--on]="strikes() > i" class="hud__x">✕</span>
+          }
+        </span>
+        <button type="button" class="cm-btn" (click)="end()">Abandonner</button>
+      </div>
+
+      <div class="rush__board">
+        @if (fen(); as f) {
+          <app-chessboard [fen]="f" [interactive]="true" [lastMove]="lastMove()" (move)="onMove($event)" />
+        } @else {
+          <div class="placeholder">Puzzle suivant…</div>
+        }
+      </div>
+    }
+    @case ('ended') {
+      <div class="endcard">
+        <h1 class="rush__title">Fini !</h1>
+        <p class="endcard__score">{{ score() }}</p>
+        <p class="rush__sub">
+          @if (score() >= best() && score() > 0) {
+            🏆 Nouveau record en {{ mode() }} !
+          } @else {
+            Record en {{ mode() }} : {{ best() }}
+          }
+        </p>
+        <div class="endcard__actions">
+          <button type="button" class="cm-btn cm-btn--primary" (click)="start(mode())">Rejouer</button>
+          <button type="button" class="cm-btn" (click)="backToMenu()">Changer de mode</button>
+        </div>
+      </div>
+    }
+  }
+</section>

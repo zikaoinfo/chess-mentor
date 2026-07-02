@@ -98,6 +98,8 @@ export const PuzzleStore = signalStore(
         attempts: store.attemptsOnCurrent(),
         timeMs: Date.now() - store.startedAt(),
         correct,
+        themes: puzzle.themes,
+        rating: puzzle.rating,
       };
       patchState(store, addEntity(attempt, attemptConfig));
       void storage.saveAttempt(attempt);

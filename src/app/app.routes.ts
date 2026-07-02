@@ -19,6 +19,38 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'rush',
+    title: 'ChessMentor \u2014 Puzzle Rush',
+    loadComponent: () =>
+      import('./features/puzzle/pages/puzzle-rush/puzzle-rush').then((m) => m.PuzzleRush),
+  },
+  {
+    path: 'review',
+    title: 'ChessMentor — Analyse de partie',
+    loadComponent: () =>
+      import('./features/analysis/pages/game-review/game-review').then((m) => m.GameReviewPage),
+  },
+  {
+    path: 'openings',
+    title: 'ChessMentor — Explorateur d\u2019ouvertures',
+    loadComponent: () =>
+      import('./features/openings/pages/explorer/explorer').then((m) => m.OpeningsExplorer),
+  },
+  {
+    path: 'drills',
+    title: 'ChessMentor \u2014 Finales',
+    loadComponent: () =>
+      import('./features/drills/pages/endgame-trainer/endgame-trainer').then(
+        (m) => m.EndgameTrainer,
+      ),
+  },
+  {
+    path: 'insights',
+    title: 'ChessMentor — Insights',
+    loadComponent: () =>
+      import('./features/stats/pages/insights/insights').then((m) => m.Insights),
+  },
+  {
     path: 'stats',
     title: 'ChessMentor — Progression',
     loadComponent: () =>

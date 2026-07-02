@@ -21,7 +21,9 @@
       [coachingLoading]="coachingLoading()"
       [gameResult]="gameResult()"
       [moves]="moveHistory()"
+      [selectedBot]="bot()"
       (difficultyChange)="onDifficulty($event)"
+      (botSelect)="onSelectBot($event)"
       (hint)="onHint()"
       (newGame)="onNewGame()"
     />

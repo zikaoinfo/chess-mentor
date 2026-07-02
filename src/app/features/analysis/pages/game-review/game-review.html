@@ -1,0 +1,140 @@
+<section class="review">
+  @if (!selected()) {
+    <h1 class="review__title">Analyse de partie</h1>
+    @if (games().length === 0) {
+      <p class="empty">
+        Aucune partie enregistrée. Termine une partie contre le bot — elle apparaîtra ici,
+        prête à être analysée.
+      </p>
+    } @else {
+      <ul class="games">
+        @for (g of games(); track g.id) {
+          <li>
+            <button type="button" class="game-row" (click)="select(g)">
+              <span class="game-row__result">{{ resultLabel(g) }}</span>
+              <span class="game-row__meta">
+                {{ g.playedAt | date: 'short' }} · {{ g.playerColor === 'white' ? 'Blancs' : 'Noirs' }}
+                · {{ g.moves.length }} demi-coups
+              </span>
+              @if (g.review) {
+                <span class="game-row__badge">analysée ✓</span>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  } @else {
+    <div class="review__top">
+      <button type="button" class="cm-btn" (click)="back()">← Mes parties</button>
+      @if (!evals()) {
+        <button type="button" class="cm-btn cm-btn--primary" [disabled]="analyzing()" (click)="analyze()">
+          @if (analyzing()) { Analyse… {{ progress() }}% } @else { Analyser (Stockfish) }
+        </button>
+      } @else if (analyzing()) {
+        <span class="progress">Analyse… {{ progress() }}%</span>
+      }
+    </div>
+
+    <div class="review__body">
+      <div class="review__board">
+        <div class="evalbar" aria-hidden="true">
+          <div class="evalbar__white" [style.height.%]="whitePct()"></div>
+        </div>
+        <app-chessboard [fen]="currentFen()" [interactive]="false" [lastMove]="currentLastMove()" />
+      </div>
+
+      <aside class="review__side">
+        <div class="nav" role="group" aria-label="Navigation dans la partie">
+          <button type="button" class="cm-btn" (click)="goTo(0)" [disabled]="ply() === 0">⏮</button>
+          <button type="button" class="cm-btn" (click)="goTo(ply() - 1)" [disabled]="ply() === 0">◀</button>
+          <span class="nav__ply">{{ ply() }} / {{ maxPly() }}</span>
+          <button type="button" class="cm-btn" (click)="goTo(ply() + 1)" [disabled]="ply() === maxPly()">▶</button>
+          <button type="button" class="cm-btn" (click)="goTo(maxPly())" [disabled]="ply() === maxPly()">⏭</button>
+        </div>
+
+        @if (evals(); as list) {
+          <figure class="chart">
+            <figcaption class="chart__title">Évaluation (centipions, côté blanc)</figcaption>
+            <svg viewBox="0 0 100 32" preserveAspectRatio="none" role="img"
+              [attr.aria-label]="'Courbe d\'évaluation sur ' + list.length + ' demi-coups'">
+              <line x1="0" y1="16" x2="100" y2="16" class="chart__zero" />
+              <polyline [attr.points]="curvePoints()" class="chart__line" />
+              @for (d of errorDots(); track d.ply) {
+                <circle
+                  [attr.cx]="d.x" [attr.cy]="d.y" r="1.6"
+                  class="chart__dot"
+                  [class.chart__dot--blunder]="d.cls === 'blunder'"
+                  (click)="goTo(d.ply)"
+                >
+                  <title>Coup {{ d.ply }} — {{ d.cls === 'blunder' ? 'gaffe' : 'erreur' }}</title>
+                </circle>
+              }
+            </svg>
+          </figure>
+
+          @if (summary(); as s) {
+            <div class="summary">
+              <div class="summary__col">
+                <span class="summary__who">Toi</span>
+                <span class="pill pill--blunder">?? {{ s.player.blunder }}</span>
+                <span class="pill pill--mistake">? {{ s.player.mistake }}</span>
+                <span class="pill pill--inacc">?! {{ s.player.inaccuracy }}</span>
+              </div>
+              <div class="summary__col">
+                <span class="summary__who">Bot</span>
+                <span class="pill pill--blunder">?? {{ s.bot.blunder }}</span>
+                <span class="pill pill--mistake">? {{ s.bot.mistake }}</span>
+                <span class="pill pill--inacc">?! {{ s.bot.inaccuracy }}</span>
+              </div>
+            </div>
+          }
+
+          <div class="moves">
+            @for (e of list; track e.ply) {
+              <button
+                type="button"
+                class="move"
+                [class.move--active]="ply() === e.ply"
+                [attr.data-cls]="e.cls"
+                (click)="goTo(e.ply)"
+              >
+                @if (e.ply % 2 === 1) {
+                  <span class="move__num">{{ (e.ply + 1) / 2 }}.</span>
+                }
+                {{ e.san }}
+                <span class="move__badge">{{ badge(e.cls) }}</span>
+              </button>
+            }
+          </div>
+
+          @if (ply() > 0) {
+            <button type="button" class="cm-btn" [disabled]="explaining()" (click)="explain()">
+              @if (explaining()) { Explication… } @else { Expliquer ce coup }
+            </button>
+          }
+          @if (explanation(); as x) {
+            <div class="coachmsg" role="status">🤖 {{ x.text }}</div>
+          }
+        } @else {
+          <div class="moves">
+            @for (m of selected()!.moves; track $index) {
+              <button
+                type="button"
+                class="move"
+                [class.move--active]="ply() === $index + 1"
+                (click)="goTo($index + 1)"
+              >
+                @if ($index % 2 === 0) {
+                  <span class="move__num">{{ $index / 2 + 1 }}.</span>
+                }
+                {{ m.san }}
+              </button>
+            }
+          </div>
+          <p class="hint-text">Lance l'analyse pour classer chaque coup et voir la courbe d'évaluation.</p>
+        }
+      </aside>
+    </div>
+  }
+</section>
