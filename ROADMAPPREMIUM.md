@@ -69,7 +69,7 @@
 - Score sauvegardé localement + record personnel
 - Compteur de streak visuel en temps réel
 
-## Feature 5 — Bots à personnalités `[ ]`
+## Feature 5 — Bots à personnalités `[x]` (2026-07-02)
 > Équivalent : "Unlimited Bots" (Diamond)
 
 - Étendre l'Instructor existant avec des presets de bots

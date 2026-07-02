@@ -11,6 +11,52 @@
   margin-bottom: var(--cm-space-2);
 }
 
+.bots {
+  display: flex;
+  gap: var(--cm-space-2);
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+}
+
+.bot {
+  flex: 0 0 auto;
+  min-width: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--cm-space-2);
+  background: var(--cm-surface);
+  border: 1px solid var(--cm-border);
+  border-radius: var(--cm-radius);
+  color: var(--cm-text);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--cm-accent);
+  }
+}
+
+.bot--active {
+  border-color: var(--cm-accent);
+  background: var(--cm-accent-soft);
+}
+
+.bot__avatar {
+  font-size: 1.4rem;
+}
+
+.bot__name {
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.bot__elo {
+  font-size: 0.7rem;
+  color: var(--cm-text-muted);
+}
+
 .difficulty {
   display: flex;
   flex-wrap: wrap;

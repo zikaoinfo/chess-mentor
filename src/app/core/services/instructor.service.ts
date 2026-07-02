@@ -17,6 +17,7 @@ import {
   CoachingType,
   Difficulty,
 } from '../models/instructor.model';
+import { BotPersona } from '../models/bot.model';
 import { EngineResult, StockfishEngine } from './stockfish-engine';
 
 /**
@@ -51,6 +52,43 @@ export function fallbackMove(fen: string): string {
   const capture = moves.find((m) => m.captured);
   const chosen = capture ?? moves[Math.floor(Math.random() * moves.length)];
   return `${chosen.from}${chosen.to}${chosen.promotion ?? ''}`;
+}
+
+const CAPTURE_VALUE: Readonly<Record<string, number>> = { q: 9, r: 5, b: 3, n: 3, p: 1 };
+
+/**
+ * Post-process the engine move according to a persona's style:
+ * - `randomness`: chance to play any legal move instead (erratic bots)
+ * - `captureBias`: chance to prefer the juiciest capture over a quiet move
+ * Pure — `rand` injectable for tests.
+ */
+export function applyPersonaStyle(
+  fen: string,
+  engineUci: string,
+  persona: BotPersona,
+  rand: () => number = Math.random,
+): string {
+  const chess = new Chess(fen);
+  const moves = chess.moves({ verbose: true });
+  if (moves.length === 0 || !engineUci) return engineUci;
+  const toUci = (m: { from: string; to: string; promotion?: string }): string =>
+    `${m.from}${m.to}${m.promotion ?? ''}`;
+
+  if (persona.randomness > 0 && rand() < persona.randomness) {
+    return toUci(moves[Math.floor(rand() * moves.length)]);
+  }
+
+  if (persona.captureBias > 0) {
+    const engineMove = moves.find((m) => toUci(m) === engineUci);
+    const captures = moves.filter((m) => m.captured);
+    if (captures.length > 0 && !engineMove?.captured && rand() < persona.captureBias) {
+      const best = [...captures].sort(
+        (a, b) => (CAPTURE_VALUE[b.captured ?? ''] ?? 0) - (CAPTURE_VALUE[a.captured ?? ''] ?? 0),
+      )[0];
+      return toUci(best);
+    }
+  }
+  return engineUci;
 }
 
 export interface CoachRequest {
@@ -120,12 +158,17 @@ export class InstructorService {
   }
 
   /** The bot's move for the current position (with a human-like delay). */
-  async botMove(fen: string, difficulty: Difficulty): Promise<string> {
+  async botMove(fen: string, difficulty: Difficulty, persona?: BotPersona | null): Promise<string> {
     const [uci] = await Promise.all([
-      this.getEngine().bestMove(fen, { skill: skillForDifficulty(difficulty), movetime: 600 }),
+      this.getEngine().bestMove(fen, {
+        skill: persona?.skill ?? skillForDifficulty(difficulty),
+        movetime: 600,
+        contempt: persona?.contempt ?? 0,
+      }),
       delay(humanDelayMs()),
     ]);
-    return uci ?? fallbackMove(fen);
+    const engineUci = uci ?? fallbackMove(fen);
+    return persona ? applyPersonaStyle(fen, engineUci, persona) : engineUci;
   }
 
   /** Best move for a hint — deeper search (depth 12), no artificial delay. */

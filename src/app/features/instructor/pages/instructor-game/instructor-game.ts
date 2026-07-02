@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { InstructorStore } from '../../../../core/store/instructor.store';
 import { Difficulty } from '../../../../core/models/instructor.model';
+import { BotPersona } from '../../../../core/models/bot.model';
 import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { InstructorPanel } from '../../components/instructor-panel/instructor-panel';
 import { HintOverlay } from '../../components/hint-overlay/hint-overlay';
@@ -29,6 +30,7 @@ export class InstructorGame {
   protected readonly gameResult = this.store.gameResult;
   protected readonly moveHistory = this.store.moveHistory;
   protected readonly coachingLoading = this.store.coachingLoading;
+  protected readonly bot = this.store.bot;
 
   /** Square of the checked king (the side to move), or null. */
   protected readonly checkSquare = computed(() => {
@@ -50,7 +52,11 @@ export class InstructorGame {
   }
 
   protected onNewGame(): void {
-    this.store.newGame(this.difficulty());
+    this.store.newGame(this.difficulty(), 'white', this.bot());
+  }
+
+  protected onSelectBot(bot: BotPersona | null): void {
+    this.store.newGame(this.difficulty(), 'white', bot);
   }
 
   protected onDifficulty(difficulty: Difficulty): void {

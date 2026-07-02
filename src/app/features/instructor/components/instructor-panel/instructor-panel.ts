@@ -8,6 +8,7 @@ import {
   InstructorPhase,
 } from '../../../../core/models/instructor.model';
 import { MoveHistory } from '../move-history/move-history';
+import { BOT_PRESETS, BotPersona } from '../../../../core/models/bot.model';
 
 interface DifficultyOption {
   readonly value: Difficulty;
@@ -45,10 +46,14 @@ export class InstructorPanel {
   readonly coachingLoading = input<boolean>(false);
   readonly gameResult = input<GameResult | null>(null);
   readonly moves = input<readonly InstructorMove[]>([]);
+  readonly selectedBot = input<BotPersona | null>(null);
 
   readonly difficultyChange = output<Difficulty>();
+  readonly botSelect = output<BotPersona | null>();
   readonly hint = output<void>();
   readonly newGame = output<void>();
+
+  protected readonly bots = BOT_PRESETS;
 
   protected readonly options: readonly DifficultyOption[] = [
     { value: 'beginner', label: 'Débutant' },
