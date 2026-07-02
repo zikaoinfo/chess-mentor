@@ -25,7 +25,10 @@
 
   <h2 class="dashboard__subtitle">Derniers puzzles</h2>
   @if (recent().length === 0) {
-    <p class="empty">Aucun puzzle résolu pour l'instant. Lancez-vous dans l'entraînement !</p>
+    <p class="empty">
+      Aucun puzzle résolu pour l'instant.
+      <a routerLink="/">Lance-toi dans l'entraînement →</a>
+    </p>
   } @else {
     <ul class="history">
       @for (attempt of recent(); track attempt.puzzleId + attempt.solvedAt) {

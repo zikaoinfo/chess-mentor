@@ -1,4 +1,5 @@
 <section class="explorer">
+  <h1 class="visually-hidden">Explorateur d'ouvertures</h1>
   <div class="explorer__board">
     <app-chessboard [fen]="fen()" [interactive]="true" [lastMove]="lastMove()" (move)="onBoardMove($event)" />
   </div>

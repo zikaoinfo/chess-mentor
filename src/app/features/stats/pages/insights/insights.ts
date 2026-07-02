@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { StorageService } from '../../../../core/services/storage.service';
 import { PuzzleAttempt } from '../../../../core/models/puzzle.model';
 import { SavedGame } from '../../../../core/models/saved-game.model';
@@ -24,7 +25,7 @@ const PHASE_LABEL: Readonly<Record<GamePhase, string>> = {
 @Component({
   selector: 'app-insights',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ThemeLabelPipe],
+  imports: [ThemeLabelPipe, RouterLink],
   templateUrl: './insights.html',
   styleUrl: './insights.scss',
 })

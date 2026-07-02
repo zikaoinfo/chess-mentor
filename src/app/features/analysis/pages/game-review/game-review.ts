@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 import { Chess } from 'chess.js';
 
 import { StorageService } from '../../../../core/services/storage.service';
@@ -50,7 +51,7 @@ interface ErrorDot {
 @Component({
   selector: 'app-game-review',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Chessboard, DatePipe],
+  imports: [Chessboard, DatePipe, RouterLink],
   templateUrl: './game-review.html',
   styleUrl: './game-review.scss',
 })
