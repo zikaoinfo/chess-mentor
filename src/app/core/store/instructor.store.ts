@@ -269,7 +269,7 @@ export const InstructorStore = signalStore(
         if (store.phase() !== 'player-turn') return;
         const fen = store.currentFen();
         const difficulty = store.difficulty();
-        const best = await service.bestMove(fen, difficulty);
+        const best = await service.bestMove(fen);
         if (!best || store.phase() !== 'player-turn') return;
 
         const from = best.slice(0, 2);
