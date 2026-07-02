@@ -59,7 +59,7 @@
 - Graphes : évolution du rating puzzle, précision dans le temps
 - Thèmes de puzzles les plus ratés (ex : "tu rates 60% des fourchettes")
 
-## Feature 4 — Puzzle Rush (mode chronométré) `[ ]`
+## Feature 4 — Puzzle Rush (mode chronométré) `[x]` (2026-07-02)
 > Équivalent : "Puzzle Rush / Puzzle Battle" (Diamond)
 
 - `features/puzzle/pages/puzzle-rush/`

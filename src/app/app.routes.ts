@@ -19,6 +19,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'rush',
+    title: 'ChessMentor \u2014 Puzzle Rush',
+    loadComponent: () =>
+      import('./features/puzzle/pages/puzzle-rush/puzzle-rush').then((m) => m.PuzzleRush),
+  },
+  {
     path: 'review',
     title: 'ChessMentor — Analyse de partie',
     loadComponent: () =>
