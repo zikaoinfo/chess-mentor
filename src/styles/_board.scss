@@ -24,7 +24,9 @@
 
   user-select: none;
   -webkit-user-select: none;
-  touch-action: manipulation;
+  // A pointer-drag moves pieces: any panning gesture on the board must go
+  // to the drag, never to page scroll.
+  touch-action: none;
 }
 
 .cm-board-svg {

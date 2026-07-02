@@ -173,6 +173,16 @@
   margin: 0;
 }
 
+// Stacked under the board on phones: the bubble may not grow unbounded and
+// shove the board (above) or the actions (below) out of reach — long
+// explanations scroll inside the bubble instead.
+@media (max-width: 768px) {
+  .coach {
+    max-height: 30dvh;
+    overflow-y: auto;
+  }
+}
+
 .actions {
   display: flex;
   gap: var(--cm-space-2);
@@ -180,7 +190,7 @@
 
 .actions .cm-btn {
   flex: 1 1 auto;
-  min-height: 42px;
+  min-height: 44px;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -47,7 +47,11 @@ export class MoveHistory {
     afterRenderEffect(() => {
       this.rows();
       const el = this.list()?.nativeElement;
-      el?.lastElementChild?.scrollIntoView?.({ block: 'nearest' });
+      // Scroll ONLY this container — scrollIntoView also scrolls every
+      // scrollable ancestor, which on mobile yanked the whole page down to
+      // the history after each move (and ghost taps then landed on whatever
+      // slid under the finger, e.g. the bot carousel → game reset).
+      if (el) el.scrollTop = el.scrollHeight;
     });
   }
 }

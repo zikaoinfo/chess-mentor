@@ -61,3 +61,27 @@ button {
     filter: brightness(1.1);
   }
 }
+
+// ─── Touch ergonomics ─────────────────────────────────────────────────────
+// Coarse pointers (phones/tablets) and narrow screens: Apple & Google both
+// recommend ≥44px tap targets, and iOS Safari auto-zooms into any focused
+// field whose font-size is under 16px — so every button grows and every
+// input pins at 16px. Buttons also breathe a little more inside cards.
+@media (pointer: coarse), (max-width: 768px) {
+  button,
+  .cm-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .cm-btn {
+    padding: 10px 18px;
+    font-size: 15px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
