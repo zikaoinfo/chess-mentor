@@ -25,6 +25,10 @@ export interface PuzzleAttempt {
   readonly attempts: number;
   readonly timeMs: number;
   readonly correct: boolean;
+  /** Puzzle themes — used by Insights (most-failed themes). Absent on old records. */
+  readonly themes?: readonly string[];
+  /** Puzzle rating — used by Insights (rating over time). Absent on old records. */
+  readonly rating?: number;
 }
 
 /**

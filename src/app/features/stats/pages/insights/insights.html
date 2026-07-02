@@ -1,0 +1,85 @@
+<section class="insights">
+  <h1 class="insights__title">Insights</h1>
+
+  <div class="tiles">
+    <div class="tile">
+      <span class="tile__value">{{ winrateStats().overallPct }}%</span>
+      <span class="tile__label">Winrate ({{ winrateStats().games }} parties)</span>
+    </div>
+    <div class="tile">
+      <span class="tile__value">
+        {{ winrateStats().whitePct ?? '—' }}{{ winrateStats().whitePct !== null ? '%' : '' }}
+      </span>
+      <span class="tile__label">Avec les Blancs</span>
+    </div>
+    <div class="tile">
+      <span class="tile__value">
+        {{ winrateStats().blackPct ?? '—' }}{{ winrateStats().blackPct !== null ? '%' : '' }}
+      </span>
+      <span class="tile__label">Avec les Noirs</span>
+    </div>
+    <div class="tile">
+      <span class="tile__value">{{ accuracy() }}%</span>
+      <span class="tile__label">Précision puzzles ({{ totalPuzzles() }})</span>
+    </div>
+  </div>
+
+  @if (weakness(); as w) {
+    <div class="callout" role="note">
+      🎯 <strong>Ta faiblesse principale : {{ weaknessLabel() }}</strong> —
+      {{ w.errors }} erreurs sur {{ w.analyzedGames }} partie(s) analysée(s).
+    </div>
+  } @else {
+    <div class="callout callout--muted" role="note">
+      Analyse tes parties dans <em>Analyse</em> pour découvrir la phase où tu perds le plus de points.
+    </div>
+  }
+
+  <div class="charts">
+    <figure class="chart">
+      <figcaption class="chart__title">
+        Rating des puzzles résolus
+        @if (ratingLast(); as last) {
+          <span class="chart__last">{{ last }}</span>
+        }
+      </figcaption>
+      @if (ratingPoints().length > 1) {
+        <svg viewBox="0 0 100 30" preserveAspectRatio="none" role="img"
+          [attr.aria-label]="'Évolution du rating sur ' + ratingPoints().length + ' puzzles résolus'">
+          <polyline [attr.points]="ratingLine()" class="chart__line" />
+        </svg>
+      } @else {
+        <p class="chart__empty">Résous quelques puzzles pour voir ta progression.</p>
+      }
+    </figure>
+
+    <figure class="chart">
+      <figcaption class="chart__title">Précision (fenêtre glissante de 10)</figcaption>
+      @if (accuracyPoints().length > 1) {
+        <svg viewBox="0 0 100 30" preserveAspectRatio="none" role="img"
+          [attr.aria-label]="'Précision glissante sur ' + accuracyPoints().length + ' tentatives'">
+          <polyline [attr.points]="accuracyLine()" class="chart__line" />
+        </svg>
+      } @else {
+        <p class="chart__empty">Pas encore assez de tentatives.</p>
+      }
+    </figure>
+  </div>
+
+  <h2 class="insights__subtitle">Thèmes les plus ratés</h2>
+  @if (themes().length === 0) {
+    <p class="chart__empty">Pas encore assez de données (minimum 3 tentatives par thème).</p>
+  } @else {
+    <ul class="themes">
+      @for (t of themes(); track t.theme) {
+        <li class="theme">
+          <span class="theme__name">{{ t.theme | themeLabel }}</span>
+          <span class="theme__bar" aria-hidden="true">
+            <span class="theme__fill" [style.width.%]="t.failPct"></span>
+          </span>
+          <span class="theme__pct">{{ t.failPct }}% ratés · {{ t.total }} essais</span>
+        </li>
+      }
+    </ul>
+  }
+</section>

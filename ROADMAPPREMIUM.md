@@ -48,7 +48,7 @@
 - Cliquer un coup l'applique sur le board et continue l'exploration
 - Bouton "Ajouter à mon répertoire" (sauvegarde locale IndexedDB)
 
-## Feature 3 — Insights / Dashboard de statistiques `[ ]`
+## Feature 3 — Insights / Dashboard de statistiques `[x]` (2026-07-02)
 > Équivalent : "Insights" (Diamond)
 
 - `features/stats/pages/insights/`

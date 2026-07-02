@@ -25,6 +25,12 @@ export const routes: Routes = [
       import('./features/analysis/pages/game-review/game-review').then((m) => m.GameReviewPage),
   },
   {
+    path: 'insights',
+    title: 'ChessMentor — Insights',
+    loadComponent: () =>
+      import('./features/stats/pages/insights/insights').then((m) => m.Insights),
+  },
+  {
     path: 'stats',
     title: 'ChessMentor — Progression',
     loadComponent: () =>
