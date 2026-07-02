@@ -38,7 +38,7 @@
 - Résumé de fin : nombre de blunders/mistakes/inaccuracies par joueur
 - Source des parties : historique local (IndexedDB) des parties Instructor
 
-## Feature 2 — Opening Explorer `[ ]`
+## Feature 2 — Opening Explorer `[x]` (2026-07-02)
 > Équivalent : "Opening Explorer" (Platinum)
 
 - `features/openings/pages/explorer/`

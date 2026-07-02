@@ -25,6 +25,12 @@ export const routes: Routes = [
       import('./features/analysis/pages/game-review/game-review').then((m) => m.GameReviewPage),
   },
   {
+    path: 'openings',
+    title: 'ChessMentor — Explorateur d\u2019ouvertures',
+    loadComponent: () =>
+      import('./features/openings/pages/explorer/explorer').then((m) => m.OpeningsExplorer),
+  },
+  {
     path: 'insights',
     title: 'ChessMentor — Insights',
     loadComponent: () =>
