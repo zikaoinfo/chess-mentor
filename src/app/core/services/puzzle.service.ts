@@ -16,6 +16,15 @@ export function puzzleUrl(base: string, theme: PuzzleTheme): string {
 }
 
 /**
+ * A themed request (anything but `mix`) is satisfied only if the returned
+ * puzzle actually carries that theme. `mix` accepts everything. Used by the
+ * trainer to skip an off-theme puzzle rather than show the wrong kind.
+ */
+export function isOffTheme(theme: PuzzleTheme, puzzleThemes: readonly string[]): boolean {
+  return theme !== 'mix' && !puzzleThemes.includes(theme);
+}
+
+/**
  * Normalise a raw Lichess response into our domain model. The API's
  * `game.pgn` ends exactly at the puzzle position (its last ply is the
  * opponent's blunder) — replay it in full: the resulting FEN is the solver's
