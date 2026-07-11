@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 
 import { LICHESS_API_URL, LICHESS_HOST_URL } from '../tokens/api.tokens';
@@ -48,14 +48,20 @@ export class LichessAuthService {
   /** Restore a stored session; drops the token if Lichess rejects it. */
   async init(): Promise<void> {
     if (this.ready()) return;
-    const token = await this.storage.getSetting<string>(TOKEN_KEY);
-    const username = await this.storage.getSetting<string>(USER_KEY);
-    if (token) {
-      this.tokenSignal.set(token);
-      this.username.set(username);
-      void this.refreshAccount();
+    try {
+      const token = await this.storage.getSetting<string>(TOKEN_KEY);
+      const username = await this.storage.getSetting<string>(USER_KEY);
+      if (token) {
+        this.tokenSignal.set(token);
+        this.username.set(username);
+        void this.refreshAccount();
+      }
+    } catch {
+      // Storage unavailable: continue logged-out rather than hang the page.
+    } finally {
+      // MUST always run — the online page gates its whole UI on `ready`.
+      this.ready.set(true);
     }
-    this.ready.set(true);
   }
 
   /** Start the PKCE flow — leaves the app for lichess.org/oauth. */
@@ -119,9 +125,12 @@ export class LichessAuthService {
       );
       this.username.set(account.username);
       await this.storage.setSetting(USER_KEY, account.username);
-    } catch {
-      // 401 → the stored token is dead: force a clean re-login.
-      await this.logout();
+    } catch (error) {
+      // Only a genuine 401/403 means the token is dead → force re-login.
+      // A network hiccup (offline, transient 5xx) must NOT drop the session.
+      if (error instanceof HttpErrorResponse && (error.status === 401 || error.status === 403)) {
+        await this.logout();
+      }
     }
   }
 

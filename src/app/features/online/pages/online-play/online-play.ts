@@ -136,14 +136,18 @@ export class OnlinePlay {
   }
 
   private async bootstrap(): Promise<void> {
-    await this.auth.init();
-    const params = this.route.snapshot.queryParamMap;
-    const code = params.get('code');
-    const state = params.get('state');
-    if (code && state) {
-      await this.auth.handleCallback(code, state);
-      // Nettoie ?code=… de l'URL (et de l'historique).
-      void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+    try {
+      await this.auth.init();
+      const params = this.route.snapshot.queryParamMap;
+      const code = params.get('code');
+      const state = params.get('state');
+      if (code && state) {
+        await this.auth.handleCallback(code, state);
+        // Nettoie ?code=… de l'URL (et de l'historique).
+        void this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true });
+      }
+    } catch {
+      // init() gère déjà `ready` dans son finally ; ne jamais bloquer la page.
     }
   }
 

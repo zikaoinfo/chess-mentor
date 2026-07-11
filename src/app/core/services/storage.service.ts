@@ -34,8 +34,13 @@ interface SettingRow {
  */
 @Injectable({ providedIn: 'root' })
 export class StorageService {
-  private readonly supported =
-    typeof indexedDB !== 'undefined' && indexedDB !== null;
+  /**
+   * IndexedDB may exist but still fail to open — Safari private mode, an
+   * upgrade blocked by another tab/PWA connection, quota errors. `useMemory`
+   * flips permanently to the in-memory fallback the first time that happens,
+   * so a broken DB degrades gracefully instead of hanging every call forever.
+   */
+  private useMemory = typeof indexedDB === 'undefined' || indexedDB === null;
   private readonly memory = new Map<string, unknown[]>();
   private dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -184,57 +189,93 @@ export class StorageService {
     return list;
   }
 
-  private async write(store: string, value: unknown, mode: 'add' | 'put'): Promise<void> {
-    if (!this.supported) {
-      const list = this.mem(store);
-      const id = (value as { id?: string; key?: string }).id ?? (value as { key?: string }).key;
-      if (mode === 'put' && id !== undefined) {
-        const i = list.findIndex(
-          (v) => ((v as { id?: string; key?: string }).id ?? (v as { key?: string }).key) === id,
-        );
-        if (i >= 0) {
-          list[i] = value;
-          return;
-        }
+  private memWrite(store: string, value: unknown, mode: 'add' | 'put'): void {
+    const list = this.mem(store);
+    const id = (value as { id?: string; key?: string }).id ?? (value as { key?: string }).key;
+    if (mode === 'put' && id !== undefined) {
+      const i = list.findIndex(
+        (v) => ((v as { id?: string; key?: string }).id ?? (v as { key?: string }).key) === id,
+      );
+      if (i >= 0) {
+        list[i] = value;
+        return;
       }
-      list.push(value);
+    }
+    list.push(value);
+  }
+
+  private async write(store: string, value: unknown, mode: 'add' | 'put'): Promise<void> {
+    const db = await this.db();
+    if (!db) {
+      this.memWrite(store, value, mode);
       return;
     }
-    const db = await this.openDb();
     await this.tx(db, store, 'readwrite', (s) => (mode === 'add' ? s.add(value) : s.put(value)));
   }
 
   private async readAll<T>(store: string): Promise<T[]> {
-    if (!this.supported) {
-      return [...(this.mem(store) as T[])];
-    }
-    const db = await this.openDb();
+    const db = await this.db();
+    if (!db) return [...(this.mem(store) as T[])];
     return this.txRead<T[]>(db, store, (s) => s.getAll());
   }
 
   private async deleteById(store: string, id: string): Promise<void> {
-    if (!this.supported) {
+    const db = await this.db();
+    if (!db) {
       const list = this.mem(store);
-      const i = list.findIndex((v) => (v as { id?: string }).id === id);
+      const i = list.findIndex((v) => (v as { id?: string; key?: string }).id === id || (v as { key?: string }).key === id);
       if (i >= 0) list.splice(i, 1);
       return;
     }
-    const db = await this.openDb();
     await this.tx(db, store, 'readwrite', (s) => s.delete(id));
   }
 
   private async clearStore(store: string): Promise<void> {
-    if (!this.supported) {
+    const db = await this.db();
+    if (!db) {
       this.mem(store).length = 0;
       return;
     }
-    const db = await this.openDb();
     await this.tx(db, store, 'readwrite', (s) => s.clear());
+  }
+
+  /** The DB, or null when unavailable — never throws, never hangs. */
+  private async db(): Promise<IDBDatabase | null> {
+    if (this.useMemory) return null;
+    try {
+      return await this.openDb();
+    } catch {
+      // Broken/blocked DB: fall back to memory for the rest of the session.
+      this.useMemory = true;
+      this.dbPromise = null;
+      return null;
+    }
   }
 
   private openDb(): Promise<IDBDatabase> {
     this.dbPromise ??= new Promise<IDBDatabase>((resolve, reject) => {
-      const request = indexedDB.open(DB_NAME, DB_VERSION);
+      let settled = false;
+      const done = (fn: () => void): void => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        fn();
+      };
+      // A blocked upgrade (another tab/PWA holds an older version) fires
+      // neither success nor error — it would hang the whole app. Bail out
+      // after a short wait so we degrade to memory instead of freezing.
+      const timer = setTimeout(
+        () => done(() => reject(new Error('IndexedDB open timed out'))),
+        3000,
+      );
+
+      let request: IDBOpenDBRequest;
+      try {
+        request = indexedDB.open(DB_NAME, DB_VERSION);
+      } catch (error) {
+        done(() => reject(error));
+        return;
+      }
       request.onupgradeneeded = () => {
         const db = request.result;
         for (const { name, options } of STORES) {
@@ -243,8 +284,15 @@ export class StorageService {
           }
         }
       };
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
+      request.onsuccess = () =>
+        done(() => {
+          const db = request.result;
+          // Don't let this tab block a future version upgrade from another tab.
+          db.onversionchange = () => db.close();
+          resolve(db);
+        });
+      request.onerror = () => done(() => reject(request.error));
+      request.onblocked = () => done(() => reject(new Error('IndexedDB open blocked')));
     });
     return this.dbPromise;
   }
