@@ -170,7 +170,7 @@ export class PuzzleService {
 
   puzzleByTheme(theme: Signal<string>) {
     return httpResource<LichessApiResponse>(
-      () => `${this.apiUrl}/puzzle/next?themes=${theme()}`
+      () => `${this.apiUrl}/puzzle/next?angle=${theme()}`
     );
   }
 }
@@ -182,11 +182,13 @@ export class PuzzleService {
 
 ```
 GET https://lichess.org/api/puzzle/next
-GET https://lichess.org/api/puzzle/next?themes=fork
-GET https://lichess.org/api/puzzle/next?themes=pin
-GET https://lichess.org/api/puzzle/next?themes=mateIn1
-GET https://lichess.org/api/puzzle/next?themes=mateIn2
+GET https://lichess.org/api/puzzle/next?angle=fork
+GET https://lichess.org/api/puzzle/next?angle=pin
+GET https://lichess.org/api/puzzle/next?angle=mateIn1
+GET https://lichess.org/api/puzzle/next?angle=mateIn2
 
+# Le filtre de thème passe par le paramètre `angle` (PAS `themes`, que
+# l'API ignore silencieusement → puzzle aléatoire).
 # Pas d'auth requise · Rate limit : 30 req/min par IP
 ```
 

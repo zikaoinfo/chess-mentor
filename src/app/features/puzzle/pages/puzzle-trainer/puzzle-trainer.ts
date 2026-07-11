@@ -45,17 +45,37 @@ export class PuzzleTrainer {
   });
 
   private lastLoadedId: string | null = null;
+  private lastThemeSeen: PuzzleTheme | null = null;
+  private themeSkips = 0;
 
   constructor() {
     // Bridge the async resource into the session store: whenever a new puzzle
     // resolves, seed the store. This is an imperative side-effect (not state
     // derivation), which is what effect() is for.
     effect(() => {
+      const theme = this.service.theme();
       const fetched = this.service.puzzle();
-      if (fetched && fetched.id !== this.lastLoadedId) {
-        this.lastLoadedId = fetched.id;
-        this.store.loadPuzzle(fetched);
+
+      // Reset the mismatch budget whenever the requested theme changes.
+      if (theme !== this.lastThemeSeen) {
+        this.lastThemeSeen = theme;
+        this.themeSkips = 0;
       }
+      if (!fetched || fetched.id === this.lastLoadedId) return;
+
+      // Safety net: should the feed ever hand back a puzzle off the requested
+      // theme (e.g. a "Mat en 1" pick returning a material tactic), skip a few
+      // times rather than show the wrong kind of puzzle. Bounded so a theme
+      // with a sparse pool can't loop forever.
+      if (theme !== 'mix' && !fetched.themes.includes(theme) && this.themeSkips < 4) {
+        this.themeSkips++;
+        this.lastLoadedId = fetched.id;
+        this.service.next();
+        return;
+      }
+
+      this.lastLoadedId = fetched.id;
+      this.store.loadPuzzle(fetched);
     });
     void this.store.hydrate();
   }

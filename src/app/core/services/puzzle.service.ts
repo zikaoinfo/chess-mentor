@@ -5,6 +5,17 @@ import { LichessApiResponse, LichessPuzzle, PuzzleTheme } from '../models/puzzle
 import { replayPgn } from '../../features/board/utils/move-engine';
 
 /**
+ * Build the puzzle-feed URL for a theme. The Lichess `/api/puzzle/next`
+ * endpoint filters by theme through the `angle` query parameter — NOT
+ * `themes`, which it silently ignores (returning a random puzzle, so a
+ * "Mat en 1" request would come back as, say, a material-winning tactic).
+ * `'mix'` hits the unfiltered endpoint.
+ */
+export function puzzleUrl(base: string, theme: PuzzleTheme): string {
+  return theme === 'mix' ? `${base}/puzzle/next` : `${base}/puzzle/next?angle=${theme}`;
+}
+
+/**
  * Normalise a raw Lichess response into our domain model. The API's
  * `game.pgn` ends exactly at the puzzle position (its last ply is the
  * opponent's blunder) — replay it in full: the resulting FEN is the solver's
@@ -35,11 +46,9 @@ export class PuzzleService {
   readonly theme = signal<PuzzleTheme>('mix');
 
   /** Raw resource — re-runs whenever `theme()` changes or `next()` is called. */
-  private readonly resource = httpResource<LichessApiResponse>(() => {
-    const theme = this.theme();
-    const base = `${this.apiUrl}/puzzle/next`;
-    return theme === 'mix' ? base : `${base}?themes=${theme}`;
-  });
+  private readonly resource = httpResource<LichessApiResponse>(() =>
+    puzzleUrl(this.apiUrl, this.theme()),
+  );
 
   /** Normalised puzzle, or `null` while loading or on error. */
   readonly puzzle = computed<LichessPuzzle | null>(() => {
