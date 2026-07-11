@@ -7,16 +7,23 @@ import { DrillProgress } from '../models/drill.model';
 import { ChessMentorBackup } from '../models/backup.model';
 
 const DB_NAME = 'chess-mentor';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 
-/** Object stores; v2 adds everything beyond `attempts`. */
+/** Object stores; v2 adds everything beyond `attempts`; v3 adds `settings`. */
 const STORES: ReadonlyArray<{ readonly name: string; readonly options: IDBObjectStoreParameters }> = [
   { name: 'attempts', options: { keyPath: 'key', autoIncrement: true } },
   { name: 'games', options: { keyPath: 'id' } },
   { name: 'repertoire', options: { keyPath: 'id' } },
   { name: 'rush', options: { keyPath: 'key', autoIncrement: true } },
   { name: 'drills', options: { keyPath: 'id' } },
+  { name: 'settings', options: { keyPath: 'key' } },
 ];
+
+/** Small key/value rows (auth token, preferences…). */
+interface SettingRow {
+  readonly key: string;
+  readonly value: unknown;
+}
 
 /**
  * Persistence boundary for all local data (attempts, games, repertoire, rush
@@ -102,6 +109,21 @@ export class StorageService {
     return this.readAll<DrillProgress>('drills');
   }
 
+  // ─── Settings (key/value : token OAuth, préférences) ────────────────────
+  async setSetting(key: string, value: unknown): Promise<void> {
+    await this.write('settings', { key, value } satisfies SettingRow, 'put');
+  }
+
+  async getSetting<T>(key: string): Promise<T | null> {
+    const rows = await this.readAll<SettingRow>('settings');
+    const row = rows.find((r) => r.key === key);
+    return row ? (row.value as T) : null;
+  }
+
+  async removeSetting(key: string): Promise<void> {
+    await this.deleteById('settings', key);
+  }
+
   // ─── Backup (export / import) ───────────────────────────────────────────
   /** Snapshot of every store, ready to be serialized to JSON. */
   async exportAll(): Promise<ChessMentorBackup> {
@@ -165,9 +187,11 @@ export class StorageService {
   private async write(store: string, value: unknown, mode: 'add' | 'put'): Promise<void> {
     if (!this.supported) {
       const list = this.mem(store);
-      const id = (value as { id?: string }).id;
+      const id = (value as { id?: string; key?: string }).id ?? (value as { key?: string }).key;
       if (mode === 'put' && id !== undefined) {
-        const i = list.findIndex((v) => (v as { id?: string }).id === id);
+        const i = list.findIndex(
+          (v) => ((v as { id?: string; key?: string }).id ?? (v as { key?: string }).key) === id,
+        );
         if (i >= 0) {
           list[i] = value;
           return;

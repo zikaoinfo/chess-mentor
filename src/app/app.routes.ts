@@ -19,6 +19,12 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'online',
+    title: 'ChessMentor — Jouer en ligne',
+    loadComponent: () =>
+      import('./features/online/pages/online-play/online-play').then((m) => m.OnlinePlay),
+  },
+  {
     path: 'rush',
     title: 'ChessMentor \u2014 Puzzle Rush',
     loadComponent: () =>
