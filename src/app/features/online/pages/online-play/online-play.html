@@ -1,0 +1,236 @@
+<section class="online">
+  <h1 class="visually-hidden">Jouer en ligne</h1>
+
+  @if (!isOnline()) {
+    <p class="notice" role="status">
+      📡 Le jeu en ligne nécessite une connexion. Reviens quand tu seras en ligne —
+      puzzles chargés, bots et analyse restent disponibles hors-ligne.
+    </p>
+  }
+
+  @if (!authReady()) {
+    <p class="notice">Chargement de la session…</p>
+  } @else if (!isLoggedIn()) {
+    <!-- ── Connexion Lichess ── -->
+    <div class="card login">
+      <h2 class="card__title">Jouer en ligne via Lichess</h2>
+      <p class="card__text">
+        ChessMentor utilise ton compte Lichess (gratuit) pour le matchmaking, l'ELO et
+        les parties en temps réel. Autorisation demandée : jouer des parties
+        (<code>board:play</code>) — rien d'autre.
+      </p>
+      @if (authError(); as err) {
+        <p class="error" role="alert">{{ err }}</p>
+      }
+      <button
+        type="button"
+        class="cm-btn cm-btn--primary"
+        [disabled]="!isOnline()"
+        (click)="login()"
+      >
+        Se connecter avec Lichess
+      </button>
+    </div>
+  } @else {
+    @switch (store.phase()) {
+      @case ('idle') {
+        <!-- ── Configuration ── -->
+        <div class="card config">
+          <div class="config__head">
+            <h2 class="card__title">Nouvelle partie en ligne</h2>
+            <span class="who">
+              Connecté : <strong>{{ username() }}</strong>
+              <button type="button" class="linklike" (click)="logout()">Déconnexion</button>
+            </span>
+          </div>
+
+          <span class="field__label">Cadence (rapide et plus lent — exigence Lichess)</span>
+          <div class="row" role="group" aria-label="Cadence">
+            @for (c of cadences; track c.label) {
+              <button
+                type="button"
+                class="cm-btn opt"
+                [class.opt--active]="cadence() === c"
+                (click)="selectCadence(c)"
+              >
+                {{ c.label }}
+              </button>
+            }
+          </div>
+
+          <span class="field__label">Partie</span>
+          <div class="row" role="group" aria-label="Classée ou amicale">
+            <button type="button" class="cm-btn opt" [class.opt--active]="!rated()" (click)="rated.set(false)">
+              Amicale
+            </button>
+            <button type="button" class="cm-btn opt" [class.opt--active]="rated()" (click)="rated.set(true)">
+              Classée (ELO)
+            </button>
+          </div>
+
+          <span class="field__label">Couleur (défis et recherches amicales)</span>
+          <div class="row" role="group" aria-label="Couleur">
+            <button type="button" class="cm-btn opt" [class.opt--active]="color() === 'random'" (click)="color.set('random')">
+              🎲 Aléatoire
+            </button>
+            <button type="button" class="cm-btn opt" [class.opt--active]="color() === 'white'" (click)="color.set('white')">
+              ⚪ Blancs
+            </button>
+            <button type="button" class="cm-btn opt" [class.opt--active]="color() === 'black'" (click)="color.set('black')">
+              ⚫ Noirs
+            </button>
+          </div>
+
+          @if (store.error(); as err) {
+            <p class="error" role="alert">
+              {{ err }}
+              <button type="button" class="linklike" (click)="dismissError()">✕</button>
+            </p>
+          }
+
+          <div class="actions">
+            <button type="button" class="cm-btn cm-btn--primary" [disabled]="busy() || !isOnline()" (click)="seek()">
+              🔎 Chercher un adversaire
+            </button>
+            <button type="button" class="cm-btn" [disabled]="busy() || !isOnline()" (click)="createOpenChallenge()">
+              🔗 Créer un lien de défi
+            </button>
+          </div>
+          <div class="friend">
+            <input
+              type="text"
+              class="friend__input"
+              placeholder="Pseudo Lichess d'un ami"
+              [value]="friendName()"
+              (input)="onFriendNameInput($event)"
+              (keydown.enter)="challengeFriend()"
+            />
+            <button type="button" class="cm-btn" [disabled]="busy() || !isOnline()" (click)="challengeFriend()">
+              ⚔️ Défier
+            </button>
+          </div>
+        </div>
+      }
+
+      @case ('seeking') {
+        <div class="card wait">
+          <span class="spinner" aria-hidden="true"></span>
+          <h2 class="card__title">Recherche d'un adversaire…</h2>
+          <p class="card__text">Cadence {{ cadence().label }} · {{ rated() ? 'classée' : 'amicale' }}</p>
+          <button type="button" class="cm-btn" (click)="cancelSearch()">Annuler</button>
+        </div>
+      }
+
+      @case ('waiting') {
+        <div class="card wait">
+          <span class="spinner" aria-hidden="true"></span>
+          <h2 class="card__title">En attente de l'adversaire…</h2>
+          @if (store.shareUrl(); as url) {
+            <p class="card__text">Envoie ce lien — la partie démarre dès qu'il est accepté :</p>
+            <div class="share">
+              <code class="share__url">{{ url }}</code>
+              <button type="button" class="cm-btn" (click)="copyShareUrl()">Copier</button>
+            </div>
+          } @else {
+            <p class="card__text">Défi envoyé — il apparaît chez ton ami sur Lichess.</p>
+          }
+          <button type="button" class="cm-btn" (click)="cancelSearch()">Annuler</button>
+        </div>
+      }
+
+      @default {
+        <!-- ── playing / finished ── -->
+        <div class="game">
+          <div class="game__board">
+            <div class="board-col">
+              <div class="player">
+                <span class="player__dot" [class.player__dot--off]="!store.connected()" [title]="store.connected() ? 'Connecté' : 'Reconnexion…'"></span>
+                <span class="player__name">
+                  {{ store.opponent()?.name ?? 'Adversaire' }}
+                  @if (store.opponent()?.rating; as elo) { <span class="player__elo">({{ elo }})</span> }
+                </span>
+                <span class="clock" [class.clock--low]="oppLow()">{{ oppClock() }}</span>
+              </div>
+              <app-capture-bar
+                label=""
+                [pieces]="oppCaptures()"
+                [capturedColor]="oppPieceColor()"
+                [advantage]="-myAdvantage()"
+              />
+              <app-chessboard
+                [fen]="store.fen()"
+                [orientation]="store.myColor()"
+                [interactive]="store.isMyTurn() && store.connected()"
+                [lastMove]="store.lastMove()"
+                [checkSquare]="checkSquare()"
+                (move)="onMove($event)"
+              />
+              <app-capture-bar
+                label=""
+                [pieces]="myCaptures()"
+                [capturedColor]="myPieceColor()"
+                [advantage]="myAdvantage()"
+              />
+              <div class="player">
+                <span class="player__name">{{ username() }}</span>
+                <span class="clock" [class.clock--low]="myLow()">{{ myClock() }}</span>
+              </div>
+            </div>
+          </div>
+
+          <aside class="game__side">
+            @if (store.phase() === 'finished') {
+              <div class="banner" role="status">
+                🏁 {{ finishLabel() }}
+                <button type="button" class="cm-btn cm-btn--primary banner__cta" (click)="analyseGame()">
+                  Analyser la partie →
+                </button>
+                <button type="button" class="cm-btn banner__cta" (click)="newGame()">
+                  Nouvelle partie
+                </button>
+              </div>
+            } @else {
+              <div class="turn" role="status">
+                {{ store.isMyTurn() ? 'À toi de jouer' : "Au tour de l'adversaire…" }}
+                @if (!store.connected()) { <span class="reconnect">— reconnexion…</span> }
+              </div>
+
+              @if (store.opponentDrawOffer()) {
+                <div class="banner" role="alert">
+                  🤝 L'adversaire propose la nulle.
+                  <button type="button" class="cm-btn cm-btn--primary banner__cta" (click)="respondDraw(true)">Accepter</button>
+                  <button type="button" class="cm-btn banner__cta" (click)="respondDraw(false)">Refuser</button>
+                </div>
+              }
+
+              <div class="actions">
+                <button type="button" class="cm-btn" (click)="offerDraw()">🤝 Nulle ?</button>
+                <button type="button" class="cm-btn" (click)="resign()">🏳️ Abandonner</button>
+              </div>
+            }
+
+            @if (store.error(); as err) {
+              <p class="error" role="alert">
+                {{ err }}
+                <button type="button" class="linklike" (click)="dismissError()">✕</button>
+              </p>
+            }
+
+            <div class="history" role="log" aria-label="Historique des coups">
+              @if (store.sanList().length === 0) {
+                <p class="card__text">Aucun coup pour l'instant.</p>
+              } @else {
+                @for (san of store.sanList(); track $index) {
+                  <span class="history__move">
+                    @if ($index % 2 === 0) {<span class="history__num">{{ $index / 2 + 1 }}.</span>}
+                    {{ san }}
+                  </span>
+                }
+              }
+            </div>
+          </aside>
+        </div>
+      }
+    }
+  }
+</section>
