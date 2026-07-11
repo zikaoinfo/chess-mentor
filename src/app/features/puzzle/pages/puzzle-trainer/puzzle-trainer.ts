@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
-import { PuzzleService } from '../../../../core/services/puzzle.service';
+import { isOffTheme, PuzzleService } from '../../../../core/services/puzzle.service';
 import { PuzzleStore } from '../../../../core/store/puzzle.store';
 import { PuzzleTheme } from '../../../../core/models/puzzle.model';
 import { HintState } from '../../../../core/models/instructor.model';
@@ -67,7 +67,7 @@ export class PuzzleTrainer {
       // theme (e.g. a "Mat en 1" pick returning a material tactic), skip a few
       // times rather than show the wrong kind of puzzle. Bounded so a theme
       // with a sparse pool can't loop forever.
-      if (theme !== 'mix' && !fetched.themes.includes(theme) && this.themeSkips < 4) {
+      if (isOffTheme(theme, fetched.themes) && this.themeSkips < 4) {
         this.themeSkips++;
         this.lastLoadedId = fetched.id;
         this.service.next();
