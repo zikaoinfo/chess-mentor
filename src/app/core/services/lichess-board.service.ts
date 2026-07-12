@@ -6,6 +6,7 @@ import { LICHESS_API_URL } from '../tokens/api.tokens';
 import {
   LichessAccountEvent,
   LichessGameEvent,
+  LichessUserStatus,
   OnlineGameConfig,
   OpenChallengeResponse,
 } from '../models/online.model';
@@ -146,6 +147,16 @@ export class LichessBoardService {
     return this.post<{ ok: boolean }>(`/challenge/${challengeId}/cancel`);
   }
 
+  /** Accepte un défi entrant : Lichess ouvre alors la partie (gameStart). */
+  acceptChallenge(challengeId: string): Promise<{ ok: boolean }> {
+    return this.post<{ ok: boolean }>(`/challenge/${challengeId}/accept`);
+  }
+
+  /** Refuse un défi entrant. */
+  declineChallenge(challengeId: string): Promise<{ ok: boolean }> {
+    return this.post<{ ok: boolean }>(`/challenge/${challengeId}/decline`);
+  }
+
   /** Défie un joueur précis. */
   challengeUser(username: string, config: OnlineGameConfig): Promise<{ id: string }> {
     return this.post<{ id: string }>(`/challenge/${username}`, challengeBody(config));
@@ -154,5 +165,29 @@ export class LichessBoardService {
   /** Crée un défi ouvert : n'importe qui peut rejoindre via l'URL. */
   challengeOpen(config: OnlineGameConfig): Promise<OpenChallengeResponse> {
     return this.post<OpenChallengeResponse>('/challenge/open', challengeBody(config));
+  }
+
+  /**
+   * Vérifie qu'un pseudo Lichess existe (GET /api/users/status). Renvoie la
+   * casse officielle du compte si trouvé, `null` sinon — pour distinguer
+   * « ce pseudo n'existe pas » d'un défi refusé pour une autre raison. Appel
+   * en lecture ponctuel (validation à la soumission), donc HttpClient plutôt
+   * que httpResource qui est pensé pour le binding réactif d'un composant.
+   */
+  async userExists(username: string): Promise<string | null> {
+    const id = username.trim();
+    if (!id) return null;
+    try {
+      const rows = await firstValueFrom(
+        this.http.get<LichessUserStatus[]>(`${this.api}/users/status`, {
+          params: { ids: id },
+          headers: this.auth.authHeader(),
+        }),
+      );
+      return rows.length > 0 ? rows[0].name : null;
+    } catch {
+      // Réseau/HS : on ne bloque pas le défi sur une validation best-effort.
+      return id;
+    }
   }
 }

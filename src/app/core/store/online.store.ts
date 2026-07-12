@@ -5,6 +5,7 @@ import { Chess } from 'chess.js';
 import {
   GameFullEvent,
   GameStateEvent,
+  IncomingChallenge,
   OnlineGameStatus,
   OnlinePlayer,
 } from '../models/online.model';
@@ -36,6 +37,8 @@ interface OnlineState {
   readonly opponentDrawOffer: boolean;
   readonly connected: boolean;
   readonly shareUrl: string | null; // défi ouvert en attente
+  /** Défis reçus d'autres joueurs, en attente de réponse. */
+  readonly incomingChallenges: readonly IncomingChallenge[];
   readonly error: string | null;
 }
 
@@ -60,6 +63,7 @@ const initialState: OnlineState = {
   opponentDrawOffer: false,
   connected: false,
   shareUrl: null,
+  incomingChallenges: [],
   error: null,
 };
 
@@ -164,6 +168,19 @@ export const OnlineGameStore = signalStore(
       } catch {
         // moves() vient du serveur : ne devrait jamais échouer.
       }
+    },
+
+    /** Ajoute (ou remplace) un défi entrant reçu du stream de compte. */
+    addChallenge(challenge: IncomingChallenge): void {
+      const others = store.incomingChallenges().filter((c) => c.id !== challenge.id);
+      patchState(store, { incomingChallenges: [...others, challenge] });
+    },
+
+    /** Retire un défi (accepté, refusé, annulé). */
+    removeChallenge(id: string): void {
+      patchState(store, {
+        incomingChallenges: store.incomingChallenges().filter((c) => c.id !== id),
+      });
     },
 
     setConnected(connected: boolean): void {

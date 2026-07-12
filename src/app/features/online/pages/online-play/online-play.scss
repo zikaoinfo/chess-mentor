@@ -101,6 +101,84 @@
   font-size: 0.9rem;
 }
 
+// ── Défis reçus ──
+.challenges {
+  margin-bottom: var(--cm-space-4);
+  border-color: var(--cm-accent);
+}
+
+.challenge {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--cm-space-2);
+  padding: var(--cm-space-2) 0;
+  border-top: 1px solid var(--cm-border);
+}
+
+.challenge__who {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--cm-space-2);
+}
+
+.challenge__meta {
+  font-size: 0.8rem;
+  color: var(--cm-text-muted);
+}
+
+.challenge__actions {
+  display: flex;
+  gap: var(--cm-space-2);
+}
+
+// ── Adversaires récents (puces) ──
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cm-space-2);
+}
+
+.chip {
+  appearance: none;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--cm-border);
+  background: var(--cm-surface-2);
+  color: var(--cm-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.chip:hover:not(:disabled) {
+  border-color: var(--cm-accent);
+}
+
+.chip:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+// ── QR code du défi ──
+.qr {
+  align-self: center;
+  width: min(220px, 70vw);
+  aspect-ratio: 1;
+  padding: var(--cm-space-2);
+  background: #fff;
+  border-radius: var(--cm-radius-sm);
+}
+
+.qr__hint {
+  margin: 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--cm-text-muted);
+}
+
 // ── Attente / recherche ──
 .wait {
   align-items: center;

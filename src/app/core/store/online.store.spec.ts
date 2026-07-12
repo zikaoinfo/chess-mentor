@@ -96,4 +96,27 @@ describe('OnlineGameStore', () => {
     store.applyGameState(gameState({ bdraw: true }));
     expect(store.opponentDrawOffer()).toBe(false); // c'est ma propre offre
   });
+
+  it('gère les défis entrants : ajout, remplacement par id, retrait', () => {
+    const store = setup();
+    const base = { fromName: 'Rival', fromRating: 1350, rated: false, speed: 'rapid', timeControl: '10+0', mine: false };
+    store.addChallenge({ id: 'c1', ...base });
+    store.addChallenge({ id: 'c2', ...base, fromName: 'Autre' });
+    expect(store.incomingChallenges().map((c) => c.id)).toEqual(['c1', 'c2']);
+
+    // Même id → remplace (pas de doublon), en conservant l'ordre en fin.
+    store.addChallenge({ id: 'c1', ...base, fromRating: 1400 });
+    expect(store.incomingChallenges()).toHaveLength(2);
+    expect(store.incomingChallenges().find((c) => c.id === 'c1')?.fromRating).toBe(1400);
+
+    store.removeChallenge('c1');
+    expect(store.incomingChallenges().map((c) => c.id)).toEqual(['c2']);
+  });
+
+  it('enterGame purge les défis entrants (on quitte l’écran d’accueil)', () => {
+    const store = setup();
+    store.addChallenge({ id: 'c1', fromName: 'X', fromRating: null, rated: false, speed: 'rapid', timeControl: null, mine: false });
+    store.enterGame('g1', 'white');
+    expect(store.incomingChallenges()).toEqual([]);
+  });
 });

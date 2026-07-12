@@ -81,11 +81,69 @@ export interface GameStartEvent {
   };
 }
 
-export interface AccountEventOther {
-  readonly type: 'challenge' | 'challengeCanceled' | 'challengeDeclined';
+/** Auteur d'un défi tel que décrit par le stream de compte. */
+export interface ChallengeUser {
+  readonly id: string;
+  readonly name: string;
+  readonly rating?: number;
+  readonly title?: string | null;
 }
 
-export type LichessAccountEvent = GameStartEvent | AccountEventOther;
+/** Défi brut du stream `/api/stream/event` (payload partiel qui nous concerne). */
+export interface RawChallenge {
+  readonly id: string;
+  readonly url?: string;
+  readonly status?: string;
+  readonly challenger?: ChallengeUser | null;
+  readonly destUser?: ChallengeUser | null;
+  readonly rated?: boolean;
+  readonly speed?: string;
+  readonly color?: 'white' | 'black' | 'random';
+  readonly finalColor?: 'white' | 'black';
+  readonly timeControl?: {
+    readonly type?: string;
+    readonly limit?: number;
+    readonly increment?: number;
+    readonly show?: string;
+  };
+}
+
+/** Événement `challenge` : quelqu'un nous défie (ou on défie quelqu'un). */
+export interface ChallengeEvent {
+  readonly type: 'challenge';
+  readonly challenge: RawChallenge;
+}
+
+/** Événement `challengeCanceled` / `challengeDeclined` : un défi disparaît. */
+export interface ChallengeGoneEvent {
+  readonly type: 'challengeCanceled' | 'challengeDeclined';
+  readonly challenge: Pick<RawChallenge, 'id'>;
+}
+
+export type LichessAccountEvent = GameStartEvent | ChallengeEvent | ChallengeGoneEvent;
+
+/**
+ * Défi entrant normalisé pour l'UI : ce qu'on affiche dans « X te défie ».
+ * `mine` distingue un défi que J'AI envoyé (à ignorer dans la liste entrante)
+ * d'un défi reçu.
+ */
+export interface IncomingChallenge {
+  readonly id: string;
+  readonly fromName: string;
+  readonly fromRating: number | null;
+  readonly rated: boolean;
+  readonly speed: string;
+  /** Cadence lisible (« 10+0 ») quand l'API la fournit. */
+  readonly timeControl: string | null;
+  readonly mine: boolean;
+}
+
+/** Réponse de GET /api/users/status?ids=… (validation d'un pseudo). */
+export interface LichessUserStatus {
+  readonly id: string;
+  readonly name: string;
+  readonly online?: boolean;
+}
 
 /** Compte Lichess minimal (réponse de /api/account). */
 export interface LichessAccount {

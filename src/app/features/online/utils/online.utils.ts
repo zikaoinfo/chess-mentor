@@ -1,5 +1,11 @@
 import { Chess } from 'chess.js';
-import { GameStateEvent, OnlineGameConfig, OnlineGameStatus } from '../../../core/models/online.model';
+import {
+  GameStateEvent,
+  IncomingChallenge,
+  OnlineGameConfig,
+  OnlineGameStatus,
+  RawChallenge,
+} from '../../../core/models/online.model';
 
 /**
  * NDJSON incremental parser: feed chunks, get complete JSON lines back.
@@ -98,6 +104,30 @@ export function challengeBody(config: OnlineGameConfig): string {
   });
   if (config.color !== 'random') params.set('color', config.color);
   return params.toString();
+}
+
+/**
+ * Normalise un défi brut du stream en une entrée d'UI. `myName` sert à
+ * repérer les défis que J'AI émis (challenger == moi) : on les marque `mine`
+ * pour ne pas les afficher comme « quelqu'un te défie ».
+ */
+export function toIncomingChallenge(raw: RawChallenge, myName: string): IncomingChallenge {
+  const challenger = raw.challenger ?? null;
+  const mine = (challenger?.name ?? '').toLowerCase() === myName.trim().toLowerCase();
+  return {
+    id: raw.id,
+    fromName: challenger?.name ?? '?',
+    fromRating: challenger?.rating ?? null,
+    rated: raw.rated === true,
+    speed: raw.speed ?? '',
+    timeControl: raw.timeControl?.show ?? null,
+    mine,
+  };
+}
+
+/** Texte prêt à partager pour inviter un ami à une partie (Web Share / copie). */
+export function shareInviteText(url: string): string {
+  return `Rejoins-moi pour une partie d'échecs sur ChessMentor : ${url}`;
 }
 
 /** mm:ss (or h:mm:ss beyond an hour), clamped at zero. */

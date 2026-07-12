@@ -32,6 +32,30 @@
       </button>
     </div>
   } @else {
+    @if (store.incomingChallenges().length > 0 && store.phase() === 'idle') {
+      <!-- ── Défis reçus ── -->
+      <div class="card challenges">
+        <h2 class="card__title">⚔️ Défis reçus</h2>
+        @for (c of store.incomingChallenges(); track c.id) {
+          <div class="challenge">
+            <span class="challenge__who">
+              <strong>{{ c.fromName }}</strong>
+              @if (c.fromRating) { <span class="player__elo">({{ c.fromRating }})</span> }
+              <span class="challenge__meta">
+                {{ c.rated ? 'classée' : 'amicale' }}@if (c.timeControl) { · {{ c.timeControl }} }
+              </span>
+            </span>
+            <span class="challenge__actions">
+              <button type="button" class="cm-btn cm-btn--primary" [disabled]="!isOnline()" (click)="acceptChallenge(c.id)">
+                Accepter
+              </button>
+              <button type="button" class="cm-btn" (click)="declineChallenge(c.id)">Refuser</button>
+            </span>
+          </div>
+        }
+      </div>
+    }
+
     @switch (store.phase()) {
       @case ('idle') {
         <!-- ── Configuration ── -->
@@ -109,6 +133,23 @@
               ⚔️ Défier
             </button>
           </div>
+
+          @if (friends().length > 0) {
+            <span class="field__label">Adversaires récents</span>
+            <div class="chips">
+              @for (f of friends(); track f.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [disabled]="busy() || !isOnline()"
+                  [title]="f.games + ' partie(s)'"
+                  (click)="challengeFromChip(f)"
+                >
+                  ↺ {{ f.name }}
+                </button>
+              }
+            </div>
+          }
         </div>
       }
 
@@ -130,7 +171,14 @@
             <div class="share">
               <code class="share__url">{{ url }}</code>
               <button type="button" class="cm-btn" (click)="copyShareUrl()">Copier</button>
+              @if (canNativeShare) {
+                <button type="button" class="cm-btn cm-btn--primary" (click)="shareInvite()">📤 Partager</button>
+              }
             </div>
+            @if (qrSvg(); as qr) {
+              <div class="qr" [innerHTML]="qr"></div>
+              <p class="qr__hint">Sur place ? Fais scanner ce QR code à ton adversaire.</p>
+            }
           } @else {
             <p class="card__text">Défi envoyé — il apparaît chez ton ami sur Lichess.</p>
           }
@@ -182,7 +230,12 @@
             @if (store.phase() === 'finished') {
               <div class="banner" role="status">
                 🏁 {{ finishLabel() }}
-                <button type="button" class="cm-btn cm-btn--primary banner__cta" (click)="analyseGame()">
+                @if (rematchName(); as opp) {
+                  <button type="button" class="cm-btn cm-btn--primary banner__cta" [disabled]="!isOnline()" (click)="rematch()">
+                    ⚔️ Revanche contre {{ opp }}
+                  </button>
+                }
+                <button type="button" class="cm-btn banner__cta" (click)="analyseGame()">
                   Analyser la partie →
                 </button>
                 <button type="button" class="cm-btn banner__cta" (click)="newGame()">

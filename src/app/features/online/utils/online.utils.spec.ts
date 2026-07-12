@@ -5,8 +5,53 @@ import {
   movesToPosition,
   resultLabel,
   seekBody,
+  shareInviteText,
   splitNdjson,
+  toIncomingChallenge,
 } from './online.utils';
+import { RawChallenge } from '../../../core/models/online.model';
+
+describe('toIncomingChallenge', () => {
+  const raw: RawChallenge = {
+    id: 'abc123',
+    challenger: { id: 'rival', name: 'Rival', rating: 1350 },
+    rated: false,
+    speed: 'rapid',
+    timeControl: { type: 'clock', limit: 600, increment: 0, show: '10+0' },
+  };
+
+  it('normalise un défi reçu (autre que moi)', () => {
+    const c = toIncomingChallenge(raw, 'moi');
+    expect(c).toEqual({
+      id: 'abc123',
+      fromName: 'Rival',
+      fromRating: 1350,
+      rated: false,
+      speed: 'rapid',
+      timeControl: '10+0',
+      mine: false,
+    });
+  });
+
+  it('repère un défi que J’AI émis (challenger == moi, casse ignorée)', () => {
+    expect(toIncomingChallenge(raw, 'RIVAL').mine).toBe(true);
+  });
+
+  it('tolère un challenger absent', () => {
+    const c = toIncomingChallenge({ id: 'x' }, 'moi');
+    expect(c.fromName).toBe('?');
+    expect(c.fromRating).toBeNull();
+    expect(c.timeControl).toBeNull();
+    expect(c.mine).toBe(false);
+  });
+});
+
+describe('shareInviteText', () => {
+  it('inclut l’URL dans un message d’invitation', () => {
+    const url = 'https://lichess.org/abc';
+    expect(shareInviteText(url)).toContain(url);
+  });
+});
 
 describe('splitNdjson', () => {
   it('découpe les lignes complètes et garde le reste en tampon', () => {

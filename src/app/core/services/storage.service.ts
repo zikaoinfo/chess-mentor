@@ -5,11 +5,16 @@ import { RepertoireEntry } from '../models/opening.model';
 import { RushScore } from '../models/rush.model';
 import { DrillProgress } from '../models/drill.model';
 import { ChessMentorBackup } from '../models/backup.model';
+import { Friend } from '../models/friend.model';
 
 const DB_NAME = 'chess-mentor';
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 
-/** Object stores; v2 adds everything beyond `attempts`; v3 adds `settings`. */
+/**
+ * Object stores; v2 adds everything beyond `attempts`; v3 adds `settings`;
+ * v4 adds `friends`. `createObjectStore` is idempotent-guarded below, so a
+ * single upgrade path covers every prior version.
+ */
 const STORES: ReadonlyArray<{ readonly name: string; readonly options: IDBObjectStoreParameters }> = [
   { name: 'attempts', options: { keyPath: 'key', autoIncrement: true } },
   { name: 'games', options: { keyPath: 'id' } },
@@ -17,6 +22,7 @@ const STORES: ReadonlyArray<{ readonly name: string; readonly options: IDBObject
   { name: 'rush', options: { keyPath: 'key', autoIncrement: true } },
   { name: 'drills', options: { keyPath: 'id' } },
   { name: 'settings', options: { keyPath: 'key' } },
+  { name: 'friends', options: { keyPath: 'id' } },
 ];
 
 /** Small key/value rows (auth token, preferences…). */
@@ -122,6 +128,37 @@ export class StorageService {
 
   async removeSetting(key: string): Promise<void> {
     await this.deleteById('settings', key);
+  }
+
+  // ─── Amis / adversaires récents ─────────────────────────────────────────
+  /**
+   * Mémorise (ou met à jour) un adversaire croisé en ligne : incrémente son
+   * compteur de parties et rafraîchit sa date. `at` est injectable pour des
+   * tests déterministes ; par défaut la date courante.
+   */
+  async recordFriend(name: string, at: Date = new Date()): Promise<void> {
+    const id = name.trim().toLowerCase();
+    if (!id) return;
+    const existing = (await this.allFriends()).find((f) => f.id === id);
+    const friend: Friend = {
+      id,
+      name: name.trim(),
+      lastPlayedAt: at,
+      games: (existing?.games ?? 0) + 1,
+    };
+    await this.write('friends', friend, 'put');
+  }
+
+  /** Adversaires récents, du plus récent au plus ancien. */
+  async allFriends(): Promise<Friend[]> {
+    const items = await this.readAll<Friend>('friends');
+    return items.sort(
+      (a, b) => new Date(b.lastPlayedAt).getTime() - new Date(a.lastPlayedAt).getTime(),
+    );
+  }
+
+  async removeFriend(id: string): Promise<void> {
+    await this.deleteById('friends', id);
   }
 
   // ─── Backup (export / import) ───────────────────────────────────────────
