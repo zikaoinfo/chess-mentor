@@ -1,78 +1,60 @@
 import { Injectable, signal } from '@angular/core';
-
-interface Step {
-  readonly freq: number;
-  readonly dur: number;
-  readonly type?: OscillatorType;
-  readonly gain?: number;
-  readonly delay?: number; // seconds, relative to now
-}
+import { renderSound, type SoundEffect } from './sound-synthesis';
 
 type AudioCtor = typeof AudioContext;
+const COOLDOWN: Partial<Record<SoundEffect, number>> = { error: 0.38, success: 0.7, gameOver: 0.7 };
 
-/**
- * Lightweight game sound effects, synthesized with the Web Audio API — no
- * audio assets to vendor, works offline and on GitHub Pages. The AudioContext
- * is created lazily on first play (a user gesture), and every method is a safe
- * no-op when audio is muted or unavailable (e.g. jsdom under tests).
- */
+/** Cached material sounds, synthesized locally and available offline. */
 @Injectable({ providedIn: 'root' })
 export class SoundService {
-  /** User mute toggle (app-wide). */
   readonly muted = signal(false);
-
   private ctx: AudioContext | null = null;
+  private master: GainNode | null = null;
+  private readonly active = new Set<AudioBufferSourceNode>();
+  private readonly buffers = new Map<SoundEffect, AudioBuffer>();
+  private readonly lastPlayed = new Map<SoundEffect, number>();
+  private generation = 0;
+  private resuming = false;
+  private pending: { effect: SoundEffect; generation: number } | null = null;
 
   toggleMute(): void {
     this.muted.update((m) => !m);
+    this.generation++;
+    this.pending = null;
+    if (!this.ctx || !this.master) return;
+    const now = this.ctx.currentTime;
+    const gain = this.master.gain;
+    gain.cancelScheduledValues(now);
+    gain.setValueAtTime(gain.value, now);
+    gain.linearRampToValueAtTime(this.muted() ? 0 : 0.7, now + 0.012);
+    if (this.muted()) {
+      for (const source of this.active) source.stop(now + 0.015);
+    }
+    this.lastPlayed.clear();
   }
 
-  // ─── Effects ────────────────────────────────────────────────────────────
   move(): void {
-    this.play([{ freq: 300, dur: 0.08, type: 'triangle', gain: 0.05 }]);
+    this.play('move');
   }
-
   capture(): void {
-    this.play([
-      { freq: 200, dur: 0.06, type: 'sawtooth', gain: 0.06 },
-      { freq: 130, dur: 0.1, type: 'sawtooth', gain: 0.06, delay: 0.04 },
-    ]);
+    this.play('capture');
   }
-
   check(): void {
-    this.play([
-      { freq: 520, dur: 0.07, type: 'square', gain: 0.04 },
-      { freq: 660, dur: 0.1, type: 'square', gain: 0.04, delay: 0.07 },
-    ]);
+    this.play('check');
   }
-
   hint(): void {
-    this.play([
-      { freq: 440, dur: 0.08, type: 'sine', gain: 0.05 },
-      { freq: 660, dur: 0.12, type: 'sine', gain: 0.05, delay: 0.08 },
-    ]);
+    this.play('hint');
   }
-
   success(): void {
-    this.play([
-      { freq: 523, dur: 0.1, type: 'sine', gain: 0.05 },
-      { freq: 659, dur: 0.1, type: 'sine', gain: 0.05, delay: 0.09 },
-      { freq: 784, dur: 0.16, type: 'sine', gain: 0.05, delay: 0.18 },
-    ]);
+    this.play('success');
   }
-
   error(): void {
-    this.play([{ freq: 160, dur: 0.18, type: 'sawtooth', gain: 0.05 }]);
+    this.play('error');
   }
-
   gameOver(): void {
-    this.play([
-      { freq: 392, dur: 0.14, type: 'triangle', gain: 0.05 },
-      { freq: 294, dur: 0.22, type: 'triangle', gain: 0.05, delay: 0.13 },
-    ]);
+    this.play('gameOver');
   }
 
-  // ─── Synthesis ──────────────────────────────────────────────────────────
   private ensureContext(): AudioContext | null {
     if (this.muted()) return null;
     const Ctor: AudioCtor | undefined =
@@ -80,35 +62,83 @@ export class SoundService {
         ? AudioContext
         : (globalThis as { webkitAudioContext?: AudioCtor }).webkitAudioContext;
     if (!Ctor) return null;
-    if (!this.ctx) {
+    if (!this.ctx || this.ctx.state === 'closed') {
       try {
-        this.ctx = new Ctor();
+        const ctx = new Ctor();
+        const master = ctx.createGain();
+        master.gain.setValueAtTime(0.7, ctx.currentTime);
+        master.connect(ctx.destination);
+        this.ctx = ctx;
+        this.master = master;
+        this.generation++;
+        this.pending = null;
+        this.resuming = false;
+        this.buffers.clear();
+        this.active.clear();
+        this.lastPlayed.clear();
       } catch {
         return null;
       }
     }
-    if (this.ctx.state === 'suspended') void this.ctx.resume();
     return this.ctx;
   }
 
-  private play(steps: readonly Step[]): void {
+  private play(effect: SoundEffect): void {
     const ctx = this.ensureContext();
     if (!ctx) return;
-    const start = ctx.currentTime;
-    for (const step of steps) {
-      const at = start + (step.delay ?? 0);
-      const osc = ctx.createOscillator();
-      const env = ctx.createGain();
-      const peak = step.gain ?? 0.05;
-      osc.type = step.type ?? 'sine';
-      osc.frequency.setValueAtTime(step.freq, at);
-      // Quick attack, smooth exponential decay — avoids clicks.
-      env.gain.setValueAtTime(0.0001, at);
-      env.gain.exponentialRampToValueAtTime(peak, at + 0.01);
-      env.gain.exponentialRampToValueAtTime(0.0001, at + step.dur);
-      osc.connect(env).connect(ctx.destination);
-      osc.start(at);
-      osc.stop(at + step.dur + 0.02);
+    if (ctx.state === 'running') {
+      this.schedule(ctx, effect);
+      return;
     }
+    // Keep only the latest feedback while a browser is unlocking audio.
+    this.pending = { effect, generation: this.generation };
+    if (this.resuming) return;
+    this.resuming = true;
+    void ctx
+      .resume()
+      .then(() => {
+        if (this.ctx !== ctx) return;
+        const pending = this.pending;
+        this.pending = null;
+        this.resuming = false;
+        if (
+          pending &&
+          pending.generation === this.generation &&
+          !this.muted() &&
+          ctx.state === 'running'
+        ) {
+          this.schedule(ctx, pending.effect);
+        }
+      })
+      .catch(() => {
+        if (this.ctx === ctx) {
+          this.pending = null;
+          this.resuming = false;
+        }
+      });
+  }
+
+  private schedule(ctx: AudioContext, effect: SoundEffect): void {
+    const previous = this.lastPlayed.get(effect);
+    if (previous !== undefined && ctx.currentTime - previous < (COOLDOWN[effect] ?? 0.09)) return;
+    let buffer = this.buffers.get(effect);
+    if (!buffer) {
+      const samples = renderSound(effect, ctx.sampleRate);
+      buffer = ctx.createBuffer(1, samples.length, ctx.sampleRate);
+      buffer.copyToChannel(samples, 0);
+      this.buffers.set(effect, buffer);
+    }
+    const source = ctx.createBufferSource();
+    const envelope = ctx.createGain();
+    source.buffer = buffer;
+    source.connect(envelope).connect(this.master!);
+    this.active.add(source);
+    source.onended = () => {
+      source.disconnect();
+      envelope.disconnect();
+      this.active.delete(source);
+    };
+    this.lastPlayed.set(effect, ctx.currentTime);
+    source.start(ctx.currentTime + 0.005);
   }
 }

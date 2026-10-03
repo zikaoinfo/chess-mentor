@@ -14,15 +14,6 @@ import { HintState } from '../../../../core/models/instructor.model';
 import { BoardSquare, fenToBoard, fenTurn, Piece } from '../../utils/fen.utils';
 import { legalTargets } from '../../utils/move-engine';
 
-const GLYPHS: Readonly<Record<string, string>> = {
-  k: '♚',
-  q: '♛',
-  r: '♜',
-  b: '♝',
-  n: '♞',
-  p: '♟',
-};
-
 /** Squares are 12.5 viewBox units; a drag shorter than this is still a tap. */
 const DRAG_THRESHOLD = 1.2;
 
@@ -153,7 +144,12 @@ export class Chessboard {
   }
 
   /** Geometry of the hint arrow, or null when no hint (or no target) is set. */
-  protected readonly hintArrow = computed<{ x1: number; y1: number; x2: number; y2: number } | null>(() => {
+  protected readonly hintArrow = computed<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  } | null>(() => {
     const hint = this.hintState();
     if (!hint?.to) return null;
     const a = this.squareCenter(hint.from);
@@ -161,12 +157,27 @@ export class Chessboard {
     return { x1: a.x, y1: a.y, x2: b.x, y2: b.y };
   });
 
-  protected glyph(piece: Piece | null): string {
-    // Append U+FE0E (text variation selector): without it, iOS/some browsers
-    // render ♟ (U+265F) as a colour emoji — black-coloured and oversized,
-    // ignoring `fill` and `font-size`. FE0E forces monochrome text rendering so
-    // the gradient fill and size apply to every piece consistently.
-    return piece ? GLYPHS[piece.type] + '\uFE0E' : '';
+  protected readonly pieceNames: Readonly<Record<string, string>> = {
+    k: 'roi',
+    q: 'dame',
+    r: 'tour',
+    b: 'fou',
+    n: 'cavalier',
+    p: 'pion',
+  };
+
+  /** Relative asset URL respects the deployment's base href. */
+  protected pieceAsset(piece: Piece): string {
+    return `pieces/${piece.color}${piece.type}.svg`;
+  }
+
+  /** SVG user units: animate the arriving piece from the previous square. */
+  protected travel(name: string): { x: number; y: number } {
+    const move = this.lastMove();
+    if (!move || move.slice(2, 4) !== name) return { x: 0, y: 0 };
+    const from = this.squareCenter(move.slice(0, 2));
+    const to = this.squareCenter(name);
+    return { x: from.x - to.x, y: from.y - to.y };
   }
 
   protected isHintFrom(name: string): boolean {
@@ -225,11 +236,6 @@ export class Chessboard {
 
   protected cancelPromotion(): void {
     this.pendingPromotion.set(null);
-  }
-
-  protected promotionGlyph(piece: PromotionPiece): string {
-    // Same U+FE0E trick as glyph(): force monochrome text rendering.
-    return GLYPHS[piece] + '\uFE0E';
   }
 
   /** Select / play a square — shared by keyboard activation and taps. */

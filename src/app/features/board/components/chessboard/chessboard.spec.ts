@@ -69,4 +69,39 @@ describe('Chessboard — promotion', () => {
     expect(emitted).toEqual(['e2e4']);
     expect(fixture.nativeElement.querySelector('.promo')).toBeNull();
   });
+  it('offers named promotion choices to screen reader users', async () => {
+    const { fixture, square } = await setup(PROMO_FEN);
+    pressEnter(square('e7'));
+    await fixture.whenStable();
+    pressEnter(square('e8'));
+    await fixture.whenStable();
+    expect(
+      [...fixture.nativeElement.querySelectorAll('.promo__btn')].map((el: any) =>
+        el.getAttribute('aria-label'),
+      ),
+    ).toEqual([
+      'Promouvoir en dame',
+      'Promouvoir en tour',
+      'Promouvoir en fou',
+      'Promouvoir en cavalier',
+    ]);
+  });
+
+  it.each([
+    ['white', '25px'],
+    ['black', '-25px'],
+  ])('animates the arrival from the correct direction for %s', async (orientation, offset) => {
+    const { fixture, square } = await setup('4k3/8/8/8/4P3/8/8/4K3 b - - 0 1');
+    fixture.componentRef.setInput('orientation', orientation);
+    fixture.componentRef.setInput('lastMove', 'e2e4');
+    await fixture.whenStable();
+    const piece = fixture.nativeElement.querySelector('.piece[data-square="e4"]') as SVGElement;
+    expect(piece.style.getPropertyValue('--travel-y')).toBe(offset);
+    expect(piece.style.getPropertyValue('--travel-x')).toBe('0px');
+    expect(
+      (
+        fixture.nativeElement.querySelector('.piece[data-square="e1"]') as SVGElement
+      ).style.getPropertyValue('--travel-y'),
+    ).toBe('0px');
+  });
 });

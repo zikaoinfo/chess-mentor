@@ -10,49 +10,6 @@
     (pointerup)="onPointerUp($event)"
     (pointercancel)="onPointerCancel()"
   >
-    <!--
-      Gradient stops & filter flood colours are SVG presentation attributes,
-      which don't resolve CSS var(); the literals here mirror the board tokens
-      in styles/_tokens.scss (warm-white / charcoal / honey / accent).
-    -->
-    <defs>
-      <!-- Warm ivory whites with subtle top→bottom internal shading. -->
-      <linearGradient id="cm-grad-white" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#fcf8f0" />
-        <stop offset="1" stop-color="#e8dcc6" />
-      </linearGradient>
-      <!-- Deep charcoal blacks — shaded, never a flat silhouette. -->
-      <linearGradient id="cm-grad-black" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#44444c" />
-        <stop offset="1" stop-color="#25252b" />
-      </linearGradient>
-      <!-- Soft green last-move overlay (mirrors --cm-lastmove-* tokens). -->
-      <linearGradient id="cm-grad-lastmove" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="rgba(20, 85, 30, 0.5)" />
-        <stop offset="1" stop-color="rgba(20, 85, 30, 0.4)" />
-      </linearGradient>
-      <!-- Extremely subtle drop shadow for piece separation/depth. -->
-      <filter id="cm-piece-shadow" x="-30%" y="-30%" width="160%" height="160%">
-        <feDropShadow dx="0" dy="0.45" stdDeviation="0.4" flood-color="#000000" flood-opacity="0.38" />
-      </filter>
-      <!-- Soft glow for the selection ring. -->
-      <filter id="cm-select-glow" x="-60%" y="-60%" width="220%" height="220%">
-        <feDropShadow dx="0" dy="0" stdDeviation="0.85" flood-color="#6f93f0" flood-opacity="0.9" />
-      </filter>
-      <!-- Arrowhead for the coaching hint arrow. -->
-      <marker
-        id="cm-hint-arrowhead"
-        viewBox="0 0 10 10"
-        refX="7"
-        refY="5"
-        markerWidth="3.4"
-        markerHeight="3.4"
-        orient="auto-start-reverse"
-      >
-        <path d="M0,1 L9,5 L0,9 z" fill="#5b7ce0" />
-      </marker>
-    </defs>
-
     @for (sq of board(); track sq.name; let i = $index) {
       <g
         class="square"
@@ -61,6 +18,11 @@
         (pointerdown)="onPointerDown($event, sq)"
         [attr.role]="'gridcell'"
         [attr.aria-label]="sq.name"
+        [attr.aria-description]="
+          sq.piece
+            ? pieceNames[sq.piece.type] + (sq.piece.color === 'w' ? ' blanc' : ' noir')
+            : 'Case vide'
+        "
         [attr.tabindex]="active() ? 0 : -1"
         (keydown.enter)="onSquare(sq)"
         (keydown.space)="onSquare(sq)"
@@ -68,7 +30,7 @@
         <rect
           class="square__bg"
           [attr.x]="(i % 8) * 12.5"
-          [attr.y]="(i - (i % 8)) / 8 * 12.5"
+          [attr.y]="((i - (i % 8)) / 8) * 12.5"
           width="12.5"
           height="12.5"
           [attr.fill]="sq.light ? 'var(--cm-square-light)' : 'var(--cm-square-dark)'"
@@ -78,10 +40,10 @@
           <rect
             class="lastmove"
             [attr.x]="(i % 8) * 12.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5"
             width="12.5"
             height="12.5"
-            fill="url(#cm-grad-lastmove)"
+            fill="var(--cm-lastmove-1)"
           />
         }
 
@@ -89,7 +51,7 @@
           <rect
             class="selection-fill"
             [attr.x]="(i % 8) * 12.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5"
             width="12.5"
             height="12.5"
           />
@@ -99,7 +61,7 @@
           <rect
             class="check-square"
             [attr.x]="(i % 8) * 12.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5"
             width="12.5"
             height="12.5"
           />
@@ -109,7 +71,7 @@
           <rect
             class="hint-square hint-square--from"
             [attr.x]="(i % 8) * 12.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5"
             width="12.5"
             height="12.5"
           />
@@ -118,7 +80,7 @@
           <rect
             class="hint-square hint-square--to"
             [attr.x]="(i % 8) * 12.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5"
             width="12.5"
             height="12.5"
           />
@@ -130,36 +92,27 @@
             class="coord"
             [class.coord--on-dark]="!sq.light"
             [attr.x]="(i % 8) * 12.5 + 1"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 3.1"
-          >{{ sq.name.charAt(1) }}</text>
+            [attr.y]="((i - (i % 8)) / 8) * 12.5 + 3.1"
+          >
+            {{ sq.name.charAt(1) }}
+          </text>
         }
         @if (i >= 56) {
           <text
             class="coord coord--file"
             [class.coord--on-dark]="!sq.light"
             [attr.x]="(i % 8) * 12.5 + 11.5"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 11.6"
-          >{{ sq.name.charAt(0) }}</text>
-        }
-
-        @if (sq.piece) {
-          <text
-            class="piece"
-            [class.piece--white]="sq.piece.color === 'w'"
-            [class.piece--black]="sq.piece.color === 'b'"
-            [class.piece--ghost]="isDragSource(sq.name)"
-            [attr.x]="(i % 8) * 12.5 + 6.25"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 6.25"
-            text-anchor="middle"
-            dominant-baseline="central"
-          >{{ glyph(sq.piece) }}</text>
+            [attr.y]="((i - (i % 8)) / 8) * 12.5 + 11.6"
+          >
+            {{ sq.name.charAt(0) }}
+          </text>
         }
 
         @if (isDropTarget(sq.name)) {
           <rect
             class="drop-target"
             [attr.x]="(i % 8) * 12.5 + 0.6"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 0.6"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5 + 0.6"
             width="11.3"
             height="11.3"
             rx="1.6"
@@ -172,7 +125,7 @@
               class="hint hint--capture"
               [class.hint--on-dark]="!sq.light"
               [attr.cx]="(i % 8) * 12.5 + 6.25"
-              [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+              [attr.cy]="((i - (i % 8)) / 8) * 12.5 + 6.25"
               r="5.55"
             />
           } @else {
@@ -180,7 +133,7 @@
               class="hint"
               [class.hint--on-dark]="!sq.light"
               [attr.cx]="(i % 8) * 12.5 + 6.25"
-              [attr.cy]="(i - (i % 8)) / 8 * 12.5 + 6.25"
+              [attr.cy]="((i - (i % 8)) / 8) * 12.5 + 6.25"
               r="2.05"
             />
           }
@@ -190,7 +143,7 @@
           <rect
             class="selection-ring"
             [attr.x]="(i % 8) * 12.5 + 0.6"
-            [attr.y]="(i - (i % 8)) / 8 * 12.5 + 0.6"
+            [attr.y]="((i - (i % 8)) / 8) * 12.5 + 0.6"
             width="11.3"
             height="11.3"
             rx="1.6"
@@ -199,6 +152,31 @@
       </g>
     }
 
+    <g class="pieces" aria-hidden="true">
+      @for (sq of board(); track sq.name; let i = $index) {
+        @if (sq.piece; as piece) {
+          @for (
+            identity of [piece.color + piece.type + (isLast(sq.name) ? lastMove() : '')];
+            track identity
+          ) {
+            <image
+              class="piece"
+              [attr.data-square]="sq.name"
+              [class.piece--ghost]="isDragSource(sq.name)"
+              [attr.href]="pieceAsset(piece)"
+              [attr.x]="(i % 8) * 12.5 + 0.5"
+              [attr.y]="((i - (i % 8)) / 8) * 12.5 + 0.25"
+              [style.--travel-x]="travel(sq.name).x + 'px'"
+              [style.--travel-y]="travel(sq.name).y + 'px'"
+              width="11.5"
+              height="11.5"
+              aria-hidden="true"
+            />
+          }
+        }
+      }
+    </g>
+
     @if (hintArrow(); as arrow) {
       <line
         class="hint-arrow"
@@ -206,21 +184,21 @@
         [attr.y1]="arrow.y1"
         [attr.x2]="arrow.x2"
         [attr.y2]="arrow.y2"
-        marker-end="url(#cm-hint-arrowhead)"
       />
+      <circle class="hint-arrow-tip" [attr.cx]="arrow.x2" [attr.cy]="arrow.y2" r="2.1" />
     }
 
     <!-- Piece following the pointer during a drag — drawn last, above all. -->
     @if (dragPiece(); as d) {
-      <text
+      <image
         class="piece piece--drag"
-        [class.piece--white]="d.piece.color === 'w'"
-        [class.piece--black]="d.piece.color === 'b'"
-        [attr.x]="d.x"
-        [attr.y]="d.y"
-        text-anchor="middle"
-        dominant-baseline="central"
-      >{{ glyph(d.piece) }}</text>
+        [attr.href]="pieceAsset(d.piece)"
+        [attr.x]="d.x - 6.25"
+        [attr.y]="d.y - 6.25"
+        width="12.5"
+        height="12.5"
+        aria-hidden="true"
+      />
     }
   </svg>
 
@@ -236,9 +214,11 @@
             [class.promo__btn--white]="promo.color === 'w'"
             [class.promo__btn--black]="promo.color === 'b'"
             (click)="choosePromotion(p)"
-            [attr.aria-label]="'Promouvoir en ' + p"
+            [attr.aria-label]="'Promouvoir en ' + pieceNames[p]"
           >
-            {{ promotionGlyph(p) }}
+            <img [src]="pieceAsset({ color: promo.color, type: p })" alt="" /><span>{{
+              pieceNames[p]
+            }}</span>
           </button>
         }
       </div>

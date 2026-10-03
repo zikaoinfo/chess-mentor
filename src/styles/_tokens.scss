@@ -10,7 +10,7 @@
   --cm-surface-2: #29312b;
   --cm-text: #f1f2eb;
   --cm-text-muted: #a5afa6;
-  --cm-border: rgba(220, 235, 217, 0.10);
+  --cm-border: rgba(220, 235, 217, 0.1);
 
   // Accent (spec: --accent / --accent-soft)
   --cm-accent: #a8c98a;
@@ -25,12 +25,12 @@
   --cm-warning: #d6a04a;
 
   // ─── Board (spec: --square-light / --square-dark) ─────────────────────
-  --cm-square-light: #e5e6d2;
-  --cm-square-dark: #809375;
+  --cm-square-light: #e8e3d7;
+  --cm-square-dark: #738797;
 
-  // Frame & depth around the playing surface — walnut to suit the wood board.
-  --cm-board-frame-1: #3b493a;
-  --cm-board-frame-2: #263225;
+  // Frame & depth around the playing surface — graphite surrounding the ivory and slate squares.
+  --cm-board-frame-1: #344453;
+  --cm-board-frame-2: #18232e;
   --cm-board-radius: clamp(10px, 2.4%, 20px);
   --cm-board-inner-radius: clamp(4px, 1.4%, 12px);
 
@@ -43,28 +43,28 @@
   --cm-piece-black-stroke: #595963;
 
   // Coordinates — adaptive to the square underneath.
-  --cm-coord-on-light: rgba(92, 62, 32, 0.75);
-  --cm-coord-on-dark: rgba(240, 217, 181, 0.85);
+  --cm-coord-on-light: #566572;
+  --cm-coord-on-dark: #f5efe2;
 
-  // Selection — soft glowing ring (kept blue: distinct from check/last-move).
-  --cm-select-ring: #6f93f0;
-  --cm-select-fill: rgba(111, 147, 240, 0.22);
+  // Selection — soft glowing ring (aqua: distinct from check/last-move).
+  --cm-select-ring: #8be2df;
+  --cm-select-fill: rgba(79, 206, 203, 0.25);
 
   // Legal-move indicators — adaptive, neutral.
-  --cm-legal-on-light: rgba(45, 32, 16, 0.3);
-  --cm-legal-on-dark: rgba(240, 217, 181, 0.45);
+  --cm-legal-on-light: rgba(28, 57, 72, 0.38);
+  --cm-legal-on-dark: rgba(249, 245, 226, 0.6);
 
-  // Last move (spec: --square-highlight-from/to) — soft green overlay.
-  --cm-lastmove-1: rgba(20, 85, 30, 0.5);
-  --cm-lastmove-2: rgba(20, 85, 30, 0.5);
+  // Last move (spec: --square-highlight-from/to) — amber overlay.
+  --cm-lastmove-1: rgba(232, 179, 76, 0.38);
+  --cm-lastmove-2: rgba(232, 179, 76, 0.38);
 
   // Check (spec: --square-check) — red overlay on the checked king.
   --cm-check: rgba(220, 40, 40, 0.6);
 
   // Coaching hint — origin/target highlight + arrow.
-  --cm-hint: #5b7ce0;
-  --cm-hint-from: rgba(91, 124, 224, 0.4);
-  --cm-hint-to: rgba(91, 124, 224, 0.6);
+  --cm-hint: #7364c6;
+  --cm-hint-from: rgba(115, 100, 198, 0.28);
+  --cm-hint-to: rgba(115, 100, 198, 0.45);
 
   // ─── Spacing scale ────────────────────────────────────────────────────
   --cm-space-1: 0.25rem;
@@ -83,5 +83,5 @@
   --cm-anim: 180ms;
 
   // ─── Typography ───────────────────────────────────────────────────────
-  --cm-font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --cm-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 }
