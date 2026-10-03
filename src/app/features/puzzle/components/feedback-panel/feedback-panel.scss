@@ -1,5 +1,6 @@
 .feedback {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--cm-space-3);
   padding: var(--cm-space-3) var(--cm-space-4);
@@ -36,4 +37,13 @@
 .feedback__msg {
   margin: 0;
   flex: 1;
+}
+
+.feedback .cm-btn {
+  flex-basis: 100%;
+  width: 100%;
+}
+.feedback__msg {
+  min-width: 140px;
+  font-size: 14px;
 }

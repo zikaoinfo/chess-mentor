@@ -5,17 +5,17 @@
 
 :root {
   // ─── App shell (spec: --bg-app / --bg-panel / --bg-card) ─────────────
-  --cm-bg: #1a1a2e;
-  --cm-surface: #16213e;
-  --cm-surface-2: #0f3460;
-  --cm-text: #eaeaea;
-  --cm-text-muted: #8892a4;
-  --cm-border: rgba(255, 255, 255, 0.08);
+  --cm-bg: #151916;
+  --cm-surface: #1e2420;
+  --cm-surface-2: #29312b;
+  --cm-text: #f1f2eb;
+  --cm-text-muted: #a5afa6;
+  --cm-border: rgba(220, 235, 217, 0.10);
 
   // Accent (spec: --accent / --accent-soft)
-  --cm-accent: #e94560;
-  --cm-accent-strong: #d63a55;
-  --cm-accent-soft: rgba(233, 69, 96, 0.15);
+  --cm-accent: #a8c98a;
+  --cm-accent-strong: #526f3d;
+  --cm-accent-soft: rgba(168, 201, 138, 0.12);
 
   // Semantic
   --cm-success: #4caf78;
@@ -25,12 +25,12 @@
   --cm-warning: #d6a04a;
 
   // ─── Board (spec: --square-light / --square-dark) ─────────────────────
-  --cm-square-light: #f0d9b5;
-  --cm-square-dark: #b58863;
+  --cm-square-light: #e5e6d2;
+  --cm-square-dark: #809375;
 
   // Frame & depth around the playing surface — walnut to suit the wood board.
-  --cm-board-frame-1: #6b4f36;
-  --cm-board-frame-2: #46331f;
+  --cm-board-frame-1: #3b493a;
+  --cm-board-frame-2: #263225;
   --cm-board-radius: clamp(10px, 2.4%, 20px);
   --cm-board-inner-radius: clamp(4px, 1.4%, 12px);
 
@@ -75,7 +75,7 @@
   --cm-space-8: 2rem;
 
   // ─── Radii, shadow, motion (spec: --radius-card 12px / --radius-btn 8px) ─
-  --cm-radius: 12px;
+  --cm-radius: 16px;
   --cm-radius-sm: 8px;
   --cm-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
 

@@ -1,5 +1,43 @@
-<section class="trainer">
-  <h1 class="visually-hidden">Entraînement aux puzzles</h1>
+<section class="trainer" [class.trainer--focused]="focusMode()">
+  <div class="trainer__intro">
+    <div>
+      <p class="eyebrow">LE RENDEZ-VOUS TACTIQUE</p>
+      <h1>À vous de jouer<span>.</span></h1>
+      <p class="trainer__description">Affûtez votre regard. Trouvez le coup qui change tout.</p>
+    </div>
+    <button
+      type="button"
+      class="cm-btn focus-toggle"
+      [attr.aria-pressed]="focusMode()"
+      (click)="focusMode.set(!focusMode())"
+    >
+      <span aria-hidden="true">⛶</span> {{ focusMode() ? 'Quitter le mode focus' : 'Mode focus' }}
+    </button>
+  </div>
+  <div class="session-strip" aria-label="Votre progression">
+    <div>
+      <span class="metric-icon" aria-hidden="true">ϟ</span
+      ><span
+        ><strong>{{ streak() }}</strong
+        ><small>Série en cours</small></span
+      >
+    </div>
+    <div>
+      <span class="metric-icon" aria-hidden="true">✓</span
+      ><span
+        ><strong>{{ solvedCount() }}</strong
+        ><small>Défis sans erreur</small></span
+      >
+    </div>
+    <div>
+      <span class="metric-icon" aria-hidden="true">◎</span
+      ><span
+        ><strong>{{ totalAttempts() ? accuracy() + '%' : '—' }}</strong
+        ><small>Précision globale</small></span
+      >
+    </div>
+    <p>Un coup à la fois.<br /><strong>Faites la différence.</strong></p>
+  </div>
   <header class="trainer__bar">
     <nav class="themes" aria-label="Thèmes de puzzle">
       @for (theme of themes; track theme) {
@@ -7,6 +45,8 @@
           type="button"
           class="cm-btn theme-btn"
           [class.theme-btn--active]="theme === activeTheme()"
+          [attr.aria-pressed]="theme === activeTheme()"
+          [disabled]="isLoading()"
           (click)="selectTheme(theme)"
         >
           {{ theme | themeLabel }}
@@ -14,34 +54,55 @@
       }
     </nav>
 
-    <div class="trainer__stats">
-      <app-streak-badge [streak]="streak()" />
-      <span class="solved" title="Puzzles résolus">✓ {{ solvedCount() }}</span>
-    </div>
+    <span class="practice-label">SÉLECTIONNEZ VOTRE TERRAIN DE JEU</span>
   </header>
 
   <div class="trainer__body">
-    <div class="trainer__board">
-      @if (isLoading() && !puzzle()) {
-        <div class="placeholder">Chargement du puzzle…</div>
-      } @else if (error()) {
-        <div class="placeholder placeholder--error">
-          Impossible de charger un puzzle.
-          <button type="button" class="cm-btn" (click)="onNext()">Réessayer</button>
-        </div>
-      } @else if (puzzle(); as p) {
-        <app-chessboard
-          [fen]="game().fen"
-          [orientation]="game().orientation"
-          [interactive]="interactive()"
-          [lastMove]="lastMove()"
-          [hintState]="boardHint()"
-          (move)="onMove($event)"
-        />
-      }
+    <div class="board-stage" [class.board-stage--won]="game().status === 'solved'">
+      <div class="board-status">
+        <span
+          class="player-token"
+          [class.player-token--black]="game().orientation === 'black'"
+          aria-hidden="true"
+          >♟</span
+        ><strong role="status">{{ boardStatus() }}</strong
+        ><span class="live-dot" aria-hidden="true"></span>
+      </div>
+      <div class="trainer__board" [attr.aria-busy]="isLoading()">
+        @if (isLoading() && !puzzle()) {
+          <div class="placeholder" role="status">
+            <span class="loading-knight" aria-hidden="true">♞</span
+            ><strong>Votre prochain défi se prépare</strong
+            ><span>Un instant, on place les pièces…</span>
+          </div>
+        } @else if (error()) {
+          <div class="placeholder placeholder--error">
+            Impossible de charger un puzzle.
+            <button type="button" class="cm-btn" (click)="onNext()">Réessayer</button>
+          </div>
+        } @else if (puzzle(); as p) {
+          <app-chessboard
+            [fen]="game().fen"
+            [orientation]="game().orientation"
+            [interactive]="interactive()"
+            [lastMove]="lastMove()"
+            [hintState]="boardHint()"
+            (move)="onMove($event)"
+          />
+        }
+      </div>
+      <div class="board-footer">
+        <span>{{
+          game().status === 'solved'
+            ? 'Combinaison terminée'
+            : 'Sélectionnez une pièce, puis sa destination.'
+        }}</span
+        ><span>{{ completedMoves() }} / {{ totalMoves() }} coups</span>
+      </div>
     </div>
 
     <aside class="trainer__side">
+      <p class="panel-label">VOTRE DÉFI</p>
       @if (puzzle(); as p) {
         <app-puzzle-card [puzzle]="p" [orientation]="game().orientation" />
         <app-feedback-panel
@@ -49,23 +110,58 @@
           [lastMoveCorrect]="lastMoveCorrect()"
           (next)="onNext()"
         />
-        @if (game().status === 'playing') {
+        @if (game().status === 'playing' && !isLoading() && !error()) {
           <div class="trainer__actions">
+            <button type="button" class="cm-btn" [disabled]="hintUsed()" (click)="onHint()">
+              {{ hintUsed() ? 'Indice affiché' : '✧ Obtenir un indice' }}
+            </button>
             <button
               type="button"
               class="cm-btn"
-              [disabled]="hintUsed()"
-              (click)="onHint()"
+              (click)="confirmSolution.set(!confirmSolution())"
+              [attr.aria-expanded]="confirmSolution()"
             >
-              Indice
-            </button>
-            <button type="button" class="cm-btn" (click)="onShowSolution()">
               Voir la solution
             </button>
+            @if (confirmSolution()) {
+              <div class="solution-confirm">
+                <p>Révéler la solution termine cet essai et remet votre série à zéro.</p>
+                <button type="button" class="cm-btn" (click)="confirmSolution.set(false)">
+                  Continuer à chercher</button
+                ><button type="button" class="cm-btn cm-btn--primary" (click)="onShowSolution()">
+                  Révéler la solution
+                </button>
+              </div>
+            }
             <button type="button" class="cm-btn skip" (click)="onNext()">Passer ce puzzle</button>
           </div>
         }
       }
+      <div class="coach-note">
+        <span class="coach-note__icon" aria-hidden="true">♘</span>
+        <p class="panel-label">LE CONSEIL DU MENTOR</p>
+        <h2>Prenez le temps de voir.</h2>
+        <p>
+          Avant de jouer, repérez les échecs, les captures et les menaces. Le bon coup commence par
+          une bonne observation.
+        </p>
+      </div>
     </aside>
+  </div>
+  <div class="mode-links" aria-label="Autres modes de jeu">
+    <a routerLink="/rush"
+      ><span class="mode-links__icon" aria-hidden="true">ϟ</span
+      ><span
+        ><small>ACCÉLÉREZ LE RYTHME</small><strong>Puzzle Rush</strong
+        ><span>Des tactiques contre la montre.</span></span
+      ><b aria-hidden="true">↗</b></a
+    >
+    <a routerLink="/instructor"
+      ><span class="mode-links__icon" aria-hidden="true">♞</span
+      ><span
+        ><small>PASSEZ À LA PRATIQUE</small><strong>Défiez le mentor</strong
+        ><span>Une partie, des conseils à chaque coup.</span></span
+      ><b aria-hidden="true">↗</b></a
+    >
   </div>
 </section>

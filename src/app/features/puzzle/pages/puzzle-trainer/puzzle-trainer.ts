@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { isOffTheme, PuzzleService } from '../../../../core/services/puzzle.service';
 import { PuzzleStore } from '../../../../core/store/puzzle.store';
 import { PuzzleTheme } from '../../../../core/models/puzzle.model';
@@ -6,7 +13,7 @@ import { HintState } from '../../../../core/models/instructor.model';
 import { Chessboard } from '../../../board/components/chessboard/chessboard';
 import { PuzzleCard } from '../../components/puzzle-card/puzzle-card';
 import { FeedbackPanel } from '../../components/feedback-panel/feedback-panel';
-import { StreakBadge } from '../../../../shared/components/streak-badge/streak-badge';
+import { RouterLink } from '@angular/router';
 import { ThemeLabelPipe } from '../../../../shared/pipes/theme-label.pipe';
 
 const THEMES: readonly PuzzleTheme[] = ['mix', 'fork', 'pin', 'mateIn1', 'mateIn2'];
@@ -15,7 +22,7 @@ const THEMES: readonly PuzzleTheme[] = ['mix', 'fork', 'pin', 'mateIn1', 'mateIn
 @Component({
   selector: 'app-puzzle-trainer',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [Chessboard, PuzzleCard, FeedbackPanel, StreakBadge, ThemeLabelPipe],
+  imports: [Chessboard, PuzzleCard, FeedbackPanel, ThemeLabelPipe, RouterLink],
   templateUrl: './puzzle-trainer.html',
   styleUrl: './puzzle-trainer.scss',
 })
@@ -35,7 +42,26 @@ export class PuzzleTrainer {
   protected readonly activeTheme = this.service.theme;
 
   protected readonly themes = THEMES;
-  protected readonly interactive = computed(() => this.game().status === 'playing');
+  protected readonly focusMode = signal(false);
+  protected readonly confirmSolution = signal(false);
+  protected readonly accuracy = this.store.accuracyPct;
+  protected readonly totalAttempts = this.store.totalAttempts;
+  protected readonly completedMoves = computed(() => Math.ceil(this.game().solutionIndex / 2));
+  protected readonly totalMoves = computed(() =>
+    Math.ceil((this.puzzle()?.solution.length ?? 0) / 2),
+  );
+  protected readonly interactive = computed(
+    () => this.game().status === 'playing' && !this.isLoading() && !this.error(),
+  );
+  protected readonly boardStatus = computed(() => {
+    if (this.isLoading()) return 'Préparation du prochain défi…';
+    if (this.error()) return 'Connexion interrompue';
+    if (this.game().status === 'solved') return 'Bien joué. Défi réussi !';
+    if (this.game().status === 'solution-shown') return 'Observez la combinaison';
+    return this.game().orientation === 'white'
+      ? 'À vous de jouer · Blancs'
+      : 'À vous de jouer · Noirs';
+  });
   protected readonly hintUsed = this.store.hintUsed;
 
   /** Board hint: reveal only the origin square of the expected move. */
@@ -75,16 +101,19 @@ export class PuzzleTrainer {
       }
 
       this.lastLoadedId = fetched.id;
+      this.confirmSolution.set(false);
       this.store.loadPuzzle(fetched);
     });
     void this.store.hydrate();
   }
 
   protected onMove(uci: string): void {
-    this.store.attemptMove(uci);
+    if (this.interactive()) this.store.attemptMove(uci);
   }
 
   protected onNext(): void {
+    if (this.isLoading()) return;
+    this.confirmSolution.set(false);
     this.service.next();
   }
 
@@ -93,14 +122,13 @@ export class PuzzleTrainer {
   }
 
   protected onShowSolution(): void {
+    this.confirmSolution.set(false);
     void this.store.showSolution();
   }
 
   protected selectTheme(theme: PuzzleTheme): void {
-    if (theme !== this.activeTheme()) {
-      this.service.setTheme(theme);
-    } else {
-      this.service.next();
-    }
+    if (this.isLoading() || theme === this.activeTheme()) return;
+    this.confirmSolution.set(false);
+    this.service.setTheme(theme);
   }
 }

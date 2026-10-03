@@ -1,193 +1,210 @@
 :host {
   display: block;
-  // 100vh over-measures on mobile while the URL bar is visible; dvh tracks
-  // the real dynamic viewport. Keep vh as fallback for older engines.
-  min-height: 100vh;
   min-height: 100dvh;
 }
-
+.skip-link {
+  position: fixed;
+  top: -80px;
+  left: 16px;
+  z-index: 20;
+  padding: 12px 20px;
+  background: var(--cm-accent);
+  color: var(--cm-bg);
+  &:focus {
+    top: 16px;
+  }
+}
 .app-header {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: 232px;
+  padding: 34px 18px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--cm-border);
+  background: #191e1a;
+  overflow-y: auto;
+  z-index: 10;
+}
+.brand {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--cm-space-4);
-  padding: var(--cm-space-4) var(--cm-space-6);
-  // Notches & system bars (viewport-fit=cover): keep the chrome tappable.
-  padding-top: calc(var(--cm-space-4) + env(safe-area-inset-top));
-  padding-left: calc(var(--cm-space-6) + env(safe-area-inset-left));
-  padding-right: calc(var(--cm-space-6) + env(safe-area-inset-right));
-  border-bottom: 1px solid var(--cm-border);
-  background: var(--cm-surface);
-}
-
-.brand {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--cm-space-2);
-  text-decoration: none;
+  gap: 10px;
+  padding: 0 10px;
   color: var(--cm-text);
-  font-weight: 800;
-  font-size: 1.15rem;
+  text-decoration: none;
 }
-
 .brand__mark {
-  font-size: 1.5rem;
   color: var(--cm-accent);
+  font-size: 40px;
+  line-height: 1;
 }
-
+.brand__name {
+  font-size: 19px;
+  font-weight: 750;
+  letter-spacing: -0.7px;
+}
+.brand__tagline {
+  display: block;
+  margin-top: 3px;
+  color: var(--cm-text-muted);
+  font-size: 9px;
+  letter-spacing: 2px;
+}
+.nav-label {
+  margin: 48px 14px 14px;
+  font-size: 10px;
+  letter-spacing: 1.8px;
+  color: var(--cm-text-muted);
+}
 .app-nav {
   display: flex;
-  align-items: center;
-  gap: var(--cm-space-4);
+  flex-direction: column;
+  gap: 6px;
 }
-
-.sound-toggle {
-  appearance: none;
-  border: 1px solid var(--cm-border);
-  background: var(--cm-surface-2);
-  color: var(--cm-text);
-  border-radius: 999px;
-  width: 2rem;
-  height: 2rem;
-  font-size: 0.95rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.sound-toggle:hover {
-  background: var(--cm-border);
-}
-
-.sound-toggle:focus-visible {
-  outline: 2px solid var(--cm-accent);
-  outline-offset: 2px;
-}
-
 .app-nav a {
-  color: var(--cm-text-muted);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 9px;
   text-decoration: none;
-  padding: var(--cm-space-1) 0;
-  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 550;
+  color: var(--cm-text-muted);
+  transition:
+    background 150ms,
+    color 150ms;
+  &:hover {
+    background: var(--cm-surface-2);
+    color: var(--cm-text);
+  }
+  &.active {
+    background: var(--cm-accent-soft);
+    color: var(--cm-accent);
+    box-shadow: inset 3px 0 var(--cm-accent);
+  }
 }
-
-.app-nav a.active {
-  color: var(--cm-text);
-  border-bottom-color: var(--cm-accent);
+.nav-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 22px;
+  line-height: 1;
 }
-
-// ─── PWA banners (offline / update / install) ────────────────────────────
+.sound-toggle {
+  margin: 18px 12px 0;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--cm-border);
+  border-radius: 10px;
+  background: var(--cm-surface);
+  cursor: pointer;
+}
+.sidebar-note {
+  margin-top: auto;
+  padding: 28px 14px 0;
+  color: var(--cm-text-muted);
+  > span {
+    display: block;
+    font-size: 32px;
+    color: var(--cm-accent);
+  }
+  strong {
+    display: block;
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--cm-text);
+  }
+  p {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+}
+.app-main {
+  max-width: 1600px;
+  margin-left: 232px;
+  padding: 32px clamp(24px, 3vw, 56px);
+}
 .app-banner {
+  margin: 0 0 0 232px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-wrap: wrap;
-  gap: var(--cm-space-3);
-  margin: 0;
-  padding: var(--cm-space-2) var(--cm-space-4);
-  padding-left: calc(var(--cm-space-4) + env(safe-area-inset-left));
-  padding-right: calc(var(--cm-space-4) + env(safe-area-inset-right));
-  font-size: 0.9rem;
-  border-bottom: 1px solid var(--cm-border);
+  gap: 12px;
+  padding: 12px;
+  font-size: 13px;
   background: var(--cm-surface-2);
-  color: var(--cm-text);
+  border-bottom: 1px solid var(--cm-border);
 }
-
-.app-banner--offline {
-  color: var(--cm-text-muted);
-}
-
-.app-banner--update {
-  border-bottom-color: var(--cm-accent);
-}
-
 .app-banner__close {
-  appearance: none;
-  border: none;
+  border: 0;
   background: transparent;
-  color: var(--cm-text-muted);
-  font-size: 1rem;
+  color: var(--cm-text);
   cursor: pointer;
-  padding: var(--cm-space-1) var(--cm-space-2);
-
-  &:hover {
-    color: var(--cm-text);
+}
+@media (max-width: 1100px) {
+  .app-header {
+    width: 200px;
+    padding-inline: 12px;
   }
-}
-
-.app-main {
-  // The column must be wide enough that the *board* (capped by viewport
-  // height — see chessboard.scss :host), not this container, is the limiter.
-  // Scale the cap up on larger displays so the board keeps growing.
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--cm-space-8) var(--cm-space-6);
-}
-
-// 24" 1080p and similar — give the board room to reach ~82vh.
-@media (min-width: 1600px) {
   .app-main {
-    max-width: 1560px;
+    margin-left: 200px;
+    padding: 28px 24px;
+  }
+  .app-banner {
+    margin-left: 200px;
   }
 }
-
-// QHD/ultrawide and 45" curved (e.g. 3440×1440, 5120×1440).
-@media (min-width: 2560px) {
-  .app-main {
-    max-width: 2040px;
-  }
-}
-
-// Phones & small tablets: brand on top, nav as a swipeable single row with
-// thumb-sized targets — never a 3-line stack, never horizontal page scroll.
 @media (max-width: 768px) {
   .app-header {
-    flex-wrap: wrap;
-    gap: var(--cm-space-2);
-    padding: var(--cm-space-3) var(--cm-space-4);
-    padding-top: calc(var(--cm-space-3) + env(safe-area-inset-top));
-    padding-left: calc(var(--cm-space-4) + env(safe-area-inset-left));
-    padding-right: calc(var(--cm-space-4) + env(safe-area-inset-right));
-  }
-
-  .app-nav {
+    position: static;
     width: 100%;
-    overflow-x: auto;
-    flex-wrap: nowrap;
-    gap: var(--cm-space-3);
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-    // Fade the right edge: visual cue that more tabs live off-screen.
-    mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
-    -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 32px), transparent);
-
-    &::-webkit-scrollbar {
-      display: none;
-    }
+    padding: calc(16px + env(safe-area-inset-top)) 16px 10px;
+    gap: 18px;
+    border-right: 0;
+    border-bottom: 1px solid var(--cm-border);
   }
-
+  .brand {
+    padding: 0;
+  }
+  .brand__mark {
+    font-size: 32px;
+  }
+  .nav-label,
+  .sidebar-note {
+    display: none;
+  }
+  .app-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    gap: 6px;
+    padding-bottom: 4px;
+  }
   .app-nav a {
     flex: 0 0 auto;
-    display: inline-flex;
-    align-items: center;
     min-height: 44px;
-    padding: var(--cm-space-1) var(--cm-space-2);
+    padding: 9px 12px;
+    font-size: 12px;
   }
-
+  .nav-icon {
+    font-size: 18px;
+    width: auto;
+  }
   .sound-toggle {
-    width: 44px;
-    height: 44px;
-    flex: 0 0 auto;
-    font-size: 1.1rem;
+    flex: 0 0 44px;
+    margin: 0;
+  }
+  .app-main {
+    margin: 0;
+    padding: 26px 16px calc(24px + env(safe-area-inset-bottom));
+  }
+  .app-banner {
+    margin-left: 0;
   }
 }
-
-// Give the board more room on phones: tighten content padding.
-@media (max-width: 560px) {
-  .app-main {
-    padding: var(--cm-space-4) var(--cm-space-3);
-    padding-left: calc(var(--cm-space-3) + env(safe-area-inset-left));
-    padding-right: calc(var(--cm-space-3) + env(safe-area-inset-right));
-    padding-bottom: calc(var(--cm-space-4) + env(safe-area-inset-bottom));
+@media (max-height: 760px) and (min-width: 769px) {
+  .sidebar-note {
+    display: none;
   }
 }

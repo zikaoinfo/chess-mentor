@@ -1,128 +1,429 @@
-.trainer {
-  display: flex;
-  flex-direction: column;
-  gap: var(--cm-space-6);
+:host {
+  display: block;
 }
-
+.trainer {
+  display: grid;
+  gap: 24px;
+  max-width: 1280px;
+  margin: auto;
+}
+.trainer__intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.eyebrow,
+.panel-label {
+  margin: 0 0 12px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  color: var(--cm-text-muted);
+}
+.eyebrow {
+  color: var(--cm-accent);
+}
+h1 {
+  margin: 0;
+  font-size: clamp(30px, 3.5vw, 48px);
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: -2px;
+  span {
+    color: var(--cm-accent);
+  }
+}
+.trainer__description {
+  margin: 10px 0 0;
+  color: var(--cm-text-muted);
+  font-size: 14px;
+}
+.focus-toggle {
+  white-space: nowrap;
+  font-size: 12px;
+  span {
+    margin-right: 6px;
+    font-size: 19px;
+  }
+  &[aria-pressed='true'] {
+    background: var(--cm-accent-soft);
+    color: var(--cm-accent);
+  }
+}
+.session-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 1.2fr;
+  border: 1px solid var(--cm-border);
+  background: linear-gradient(110deg, #283325, var(--cm-surface));
+  border-radius: 16px;
+  padding: 20px 24px;
+  gap: 20px;
+  > div {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  strong {
+    display: block;
+    font-size: 25px;
+    line-height: 1.2;
+    font-variant-numeric: tabular-nums;
+  }
+  small {
+    display: block;
+    font-size: 11px;
+    margin-top: 5px;
+    color: var(--cm-text-muted);
+  }
+  > p {
+    margin: 0;
+    padding-left: 24px;
+    border-left: 1px solid var(--cm-border);
+    font-size: 12px;
+    color: var(--cm-text-muted);
+    strong {
+      font-size: 13px;
+      margin-top: 5px;
+      color: var(--cm-text);
+    }
+  }
+}
+.metric-icon {
+  color: var(--cm-accent);
+  background: var(--cm-accent-soft);
+  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  font-size: 23px;
+}
 .trainer__bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--cm-space-4);
+  gap: 12px;
 }
-
 .themes {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--cm-space-2);
+  gap: 6px;
 }
-
+.theme-btn {
+  border-radius: 24px;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-color: transparent;
+  background: var(--cm-surface);
+}
 .theme-btn--active {
-  background: var(--cm-accent-strong);
-  border-color: var(--cm-accent-strong);
-  color: #fff;
+  background: var(--cm-accent);
+  color: #172014;
+  &:hover:not(:disabled) {
+    color: #172014;
+  }
 }
-
-.trainer__stats {
-  display: flex;
-  align-items: center;
-  gap: var(--cm-space-3);
+.practice-label {
+  color: var(--cm-text-muted);
+  font-size: 9px;
+  letter-spacing: 1.2px;
 }
-
-.solved {
-  font-weight: 700;
-  color: var(--cm-success);
-  font-variant-numeric: tabular-nums;
-}
-
 .trainer__body {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
-  gap: var(--cm-space-6);
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 24px;
   align-items: start;
 }
-
+.board-stage {
+  min-width: 0;
+  padding: 14px;
+  background: #202720;
+  border: 1px solid var(--cm-border);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px #0003;
+  transition: border-color 180ms;
+}
+.board-stage--won {
+  border-color: var(--cm-success);
+}
+.board-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 2px 12px;
+  strong {
+    font-size: 13px;
+    font-weight: 600;
+  }
+}
+.player-token {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: #ececdd;
+  color: #29312b;
+  border-radius: 8px;
+  font-size: 25px;
+}
+.player-token--black {
+  background: #111713;
+  color: #ececdd;
+  border: 1px solid #52634e;
+}
+.live-dot {
+  margin-left: auto;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--cm-accent);
+  box-shadow: 0 0 0 4px var(--cm-accent-soft);
+}
 .trainer__board {
   display: flex;
   justify-content: center;
   min-width: 0;
 }
-
-.theme-btn {
-  min-height: 40px;
-}
-
-.trainer__side {
+.board-footer {
   display: flex;
-  flex-direction: column;
-  gap: var(--cm-space-4);
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 2px 0;
+  color: var(--cm-text-muted);
+  font-size: 11px;
+  > span:last-child {
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
 }
-
+.trainer__side {
+  display: grid;
+  gap: 16px;
+  > .panel-label {
+    margin: 0;
+  }
+}
 .trainer__actions {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--cm-space-2);
+  gap: 8px;
+  .cm-btn {
+    flex: 1 1 auto;
+    font-size: 12px;
+  }
+  .skip {
+    flex-basis: 100%;
+    border-color: transparent;
+  }
 }
-
-.trainer__actions .cm-btn {
-  flex: 1 1 auto;
+.solution-confirm {
+  padding: 14px;
+  border: 1px solid var(--cm-warning);
+  border-radius: 10px;
+  display: grid;
+  gap: 8px;
+  p {
+    margin: 0 0 6px;
+    font-size: 13px;
+  }
 }
-
+.coach-note {
+  padding: 22px;
+  border: 1px solid var(--cm-border);
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--cm-surface), #283525);
+  h2 {
+    font-size: 18px;
+    margin: 0 0 10px;
+  }
+  > p:last-child {
+    font-size: 13px;
+    color: var(--cm-text-muted);
+    line-height: 1.8;
+    margin: 0;
+  }
+}
+.coach-note__icon {
+  display: block;
+  color: var(--cm-accent);
+  font-size: 34px;
+  margin-bottom: 12px;
+}
 .placeholder {
   display: flex;
   flex-direction: column;
-  gap: var(--cm-space-3);
+  gap: 12px;
   align-items: center;
   justify-content: center;
   width: 100%;
-  max-width: min(100%, 92vmin, 82vh, 1200px);
-  margin-inline: auto;
-  aspect-ratio: 1 / 1;
-  border: 1px dashed var(--cm-border);
-  border-radius: var(--cm-radius);
-  color: var(--cm-text-muted);
+  aspect-ratio: 1;
+  text-align: center;
+  padding: 20px;
+  background: repeating-conic-gradient(#29352c 0% 25%, #303e33 0% 50%) 50% / 25% 25%;
+  border-radius: 10px;
+  color: var(--cm-text);
+  font-size: 13px;
 }
-
+.loading-knight {
+  font-size: 64px;
+  color: var(--cm-accent);
+}
 .placeholder--error {
-  color: var(--cm-error);
+  color: var(--cm-text);
 }
-
-// Tablet landscape / small laptop: keep the board beside the panel but slim
-// the sidebar so the board keeps as much room as possible.
-@media (min-width: 901px) and (max-width: 1100px) {
+.mode-links {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  a {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid var(--cm-border);
+    border-radius: 14px;
+    background: var(--cm-surface);
+    text-decoration: none;
+    color: var(--cm-text);
+    transition:
+      border-color 150ms,
+      background 150ms;
+    &:hover {
+      border-color: var(--cm-accent);
+      background: var(--cm-surface-2);
+    }
+  }
+  small {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 1.3px;
+    color: var(--cm-accent);
+  }
+  strong {
+    display: block;
+    margin: 4px 0;
+    font-size: 17px;
+  }
+  a > span > span {
+    color: var(--cm-text-muted);
+    font-size: 12px;
+  }
+  b {
+    margin-left: auto;
+    color: var(--cm-text-muted);
+  }
+}
+.mode-links__icon {
+  color: var(--cm-accent);
+  font-size: 36px;
+}
+.trainer--focused {
+  .session-strip,
+  .coach-note,
+  .mode-links,
+  .trainer__description,
+  .eyebrow {
+    display: none;
+  }
   .trainer__body {
     grid-template-columns: minmax(0, 1fr) 260px;
-    gap: var(--cm-space-4);
   }
 }
-
-// Tablet portrait & phones: stack the board over the side panel.
-@media (max-width: 900px) {
+@media (max-width: 1200px) {
+  .practice-label {
+    display: none;
+  }
   .trainer__body {
-    grid-template-columns: 1fr;
-    gap: var(--cm-space-4);
+    grid-template-columns: minmax(0, 1fr) 260px;
+    gap: 16px;
   }
-
-  // The stacked side panel reads better full-width and centered under the board.
-  .trainer__side {
+  .session-strip {
+    grid-template-columns: repeat(3, 1fr);
+    > p {
+      display: none;
+    }
+  }
+}
+@media (max-width: 1000px) {
+  .trainer__body,
+  .trainer--focused .trainer__body {
+    grid-template-columns: 1fr;
+  }
+  .coach-note {
+    display: none;
+  }
+  .trainer__side > .panel-label {
+    display: none;
+  }
+}
+@media (max-width: 560px) {
+  .trainer {
+    gap: 16px;
+  }
+  .trainer__intro {
+    align-items: start;
+  }
+  h1 {
+    font-size: 30px;
+    letter-spacing: -1px;
+  }
+  .eyebrow {
+    font-size: 9px;
+  }
+  .focus-toggle {
+    padding: 8px 10px;
+    font-size: 11px;
+    max-width: 110px;
+    white-space: normal;
+  }
+  .trainer__description {
+    font-size: 12px;
+  }
+  .session-strip {
+    padding: 14px 12px;
+    gap: 10px;
+    > div {
+      gap: 6px;
+    }
+    strong {
+      font-size: 22px;
+    }
+    small {
+      font-size: 9px;
+    }
+  }
+  .metric-icon {
+    display: none;
+  }
+  .themes {
+    flex-wrap: nowrap;
+    overflow-x: auto;
     width: 100%;
-    max-width: min(100%, 92vmin, 82vh, 1200px);
-    margin-inline: auto;
+    padding: 2px 2px 6px;
+  }
+  .theme-btn {
+    flex: 0 0 auto;
+    padding-inline: 13px;
+  }
+  .board-stage {
+    padding: 9px;
+    border-radius: 14px;
+  }
+  .board-status strong {
+    font-size: 12px;
+  }
+  .board-footer {
+    font-size: 10px;
+  }
+  .mode-links {
+    grid-template-columns: 1fr;
   }
 }
 
-// Let theme buttons share the row evenly on small phones.
-@media (max-width: 560px) {
-  .trainer__bar {
-    gap: var(--cm-space-3);
-  }
-
-  .themes {
-    width: 100%;
-  }
-
-  .theme-btn {
-    flex: 1 1 auto;
+@media (min-width: 1001px) {
+  .trainer--focused .board-stage {
+    width: min(100%, max(360px, calc(100dvh - 240px)));
+    justify-self: center;
   }
 }

@@ -1,20 +1,44 @@
+<a class="skip-link" href="#main-content">Aller au contenu</a>
 <header class="app-header">
   <a class="brand" routerLink="/">
     <span class="brand__mark" aria-hidden="true">♞</span>
-    <span class="brand__name">{{ title }}</span>
+    <span
+      ><span class="brand__name">{{ title }}</span
+      ><span class="brand__tagline">UN COUP D’AVANCE</span></span
+    >
   </a>
 
+  <p class="nav-label">VOTRE ESPACE</p>
   <nav class="app-nav" aria-label="Navigation principale">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
-      Entraînement
+    <a
+      routerLink="/"
+      routerLinkActive="active"
+      ariaCurrentWhenActive="page"
+      [routerLinkActiveOptions]="{ exact: true }"
+    >
+      <span class="nav-icon" aria-hidden="true">♟</span> Entraînement
     </a>
-    <a routerLink="/rush" routerLinkActive="active">Rush</a>
-    <a routerLink="/instructor" routerLinkActive="active">Jouer contre le bot</a>
-    <a routerLink="/online" routerLinkActive="active">En ligne</a>
-    <a routerLink="/review" routerLinkActive="active">Analyse</a>
-    <a routerLink="/openings" routerLinkActive="active">Ouvertures</a>
-    <a routerLink="/drills" routerLinkActive="active">Finales</a>
-    <a routerLink="/stats" routerLinkActive="active">Progression</a>
+    <a routerLink="/rush" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">ϟ</span> Rush</a
+    >
+    <a routerLink="/instructor" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">♞</span> Jouer contre le bot</a
+    >
+    <a routerLink="/online" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">◎</span> En ligne</a
+    >
+    <a routerLink="/review" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">⌕</span> Analyse</a
+    >
+    <a routerLink="/openings" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">♜</span> Ouvertures</a
+    >
+    <a routerLink="/drills" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">♔</span> Finales</a
+    >
+    <a routerLink="/stats" routerLinkActive="active" ariaCurrentWhenActive="page"
+      ><span class="nav-icon" aria-hidden="true">↗</span> Progression</a
+    >
 
     <button
       type="button"
@@ -27,6 +51,10 @@
       {{ muted() ? '🔇' : '🔊' }}
     </button>
   </nav>
+  <div class="sidebar-note">
+    <span aria-hidden="true">♙</span><strong>Chaque coup compte.</strong>
+    <p>Un peu de pratique.<br />De grandes progressions.</p>
+  </div>
 </header>
 
 @if (!isOnline()) {
@@ -61,7 +89,9 @@
   </div>
 } @else if (showIosHint() && !installDismissed()) {
   <div class="app-banner app-banner--install" role="status">
-    <span>Sur iPhone : <strong>Partager → Sur l'écran d'accueil</strong> pour installer l'app.</span>
+    <span
+      >Sur iPhone : <strong>Partager → Sur l'écran d'accueil</strong> pour installer l'app.</span
+    >
     <button
       type="button"
       class="app-banner__close"
@@ -73,6 +103,6 @@
   </div>
 }
 
-<main class="app-main">
+<main class="app-main" id="main-content" tabindex="-1">
   <router-outlet />
 </main>
